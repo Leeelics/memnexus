@@ -2,9 +2,19 @@
 
 > **多智能体协作编排系统** - 打破 AI 编程工具的记忆孤岛
 
-[![Phase](https://img.shields.io/badge/Phase-3%20Complete-blue)]()
-[![Python](https://img.shields.io/badge/Python-3.12+-green)]()
-[![License](https://img.shields.io/badge/License-MIT-yellow)]()
+<p align="center">
+  <a href="#-project-overview"><img src="https://img.shields.io/badge/Phase-3%20Complete-blue?style=for-the-badge" alt="Phase 3 Complete"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12+-green?style=for-the-badge&logo=python" alt="Python 3.12+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License"></a>
+  <a href="https://github.com/Leeelics/MemNexus/releases"><img src="https://img.shields.io/github/v/release/Leeelics/MemNexus?style=for-the-badge" alt="Release"></a>
+</p>
+
+<p align="center">
+  <a href="#-quick-start">快速开始</a> •
+  <a href="#-documentation">文档</a> •
+  <a href="#-api-reference">API</a> •
+  <a href="#-license">License</a>
+</p>
 
 ## 🎯 项目简介
 
@@ -187,16 +197,62 @@ MemNexus/
 4. 推送分支 (`git push origin feature/amazing-feature`)
 5. 创建 Pull Request
 
-## 📝 许可证
+## 📝 License
 
-[MIT License](LICENSE)
+MemNexus is licensed under the [MIT License](LICENSE).
 
-## 👤 作者
+```
+MIT License
+
+Copyright (c) 2026 Leeelics
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
+
+### Why MIT License?
+
+We chose the MIT License because it:
+- ✅ Allows free use for personal and commercial projects
+- ✅ Permits modification and distribution
+- ✅ Provides liability protection
+- ✅ Is simple and widely understood
+
+## 📚 Documentation
+
+- [Architecture Overview](docs/ARCHITECTURE.md) - System design and architecture
+- [Getting Started](docs/GETTING_STARTED.md) - Step-by-step setup guide
+- [API Reference](docs/API.md) - Complete API documentation
+- [CLI Guide](docs/CLI.md) - Command-line interface reference
+- [Development Guide](docs/DEVELOPMENT.md) - Contributing and development
+- [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment
+- [ACP Protocol](docs/PROTOCOL_ACP.md) - ACP protocol specification
+- [MCP Protocol](docs/PROTOCOL_MCP.md) - MCP protocol specification
+
+## 👤 Author
 
 **Leeelics** - [GitHub](https://github.com/Leeelics)
+
+## 🙏 Acknowledgments
+
+- [FastAPI](https://fastapi.tiangolo.com/) - Web framework
+- [LlamaIndex](https://www.llamaindex.ai/) - RAG framework
+- [LanceDB](https://lancedb.github.io/lancedb/) - Vector database
+- [React](https://react.dev/) - Frontend framework
 
 ---
 
 <p align="center">
   <b>MemNexus</b> - 让多个 AI 助手协同工作，打破记忆孤岛
+</p>
+
+<p align="center">
+  <a href="https://github.com/Leeelics/MemNexus">⭐ Star us on GitHub</a>
 </p>
