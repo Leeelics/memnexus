@@ -1,5 +1,6 @@
 """FastAPI server for MemNexus."""
 
+import asyncio
 import json
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Dict, List, Optional
@@ -242,6 +243,195 @@ async def memory_stats() -> dict:
     
     stats = await memory_store.get_stats()
     return stats
+
+
+# Phase 2: ACP Protocol API
+
+@app.post("/api/v1/sessions/{session_id}/agents/connect")
+async def connect_agent_acp(
+    session_id: str,
+    data: dict,
+) -> dict:
+    """Connect an agent via ACP protocol."""
+    from memnexus.protocols.acp import ACPProtocolServer
+    
+    cli = data.get("cli", "claude")
+    name = data.get("name", cli)
+    working_dir = data.get("working_dir", ".")
+    
+    # Create protocol server
+    acp_server = ACPProtocolServer(session_manager)
+    await acp_server.start()
+    
+    try:
+        conn = await acp_server.connect_agent(
+            cli=cli,
+            session_id=session_id,
+            working_dir=working_dir,
+        )
+        
+        if conn:
+            return {
+                "status": "connected",
+                "connection_id": id(conn),
+                "agent": name,
+                "protocol": "acp",
+            }
+        else:
+            return {"error": "Failed to connect agent"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/api/v1/sessions/{session_id}/agents/{agent_id}/prompt")
+async def send_prompt(
+    session_id: str,
+    agent_id: str,
+    data: dict,
+) -> dict:
+    """Send a prompt to an ACP-connected agent."""
+    prompt = data.get("prompt", "")
+    
+    # Get session and find ACP connection
+    session = await session_manager.get(session_id)
+    if not session:
+        return {"error": "Session not found"}
+    
+    # TODO: Implement prompt sending via stored ACP connection
+    return {
+        "status": "sent",
+        "prompt": prompt,
+        "agent_id": agent_id,
+    }
+
+
+# Phase 2: RAG API
+
+@app.post("/api/v1/sessions/{session_id}/rag/ingest")
+async def rag_ingest(
+    session_id: str,
+    data: dict,
+) -> dict:
+    """Ingest a document into RAG pipeline."""
+    from memnexus.memory.rag import RAGPipeline, Document
+    
+    content = data.get("content", "")
+    source = data.get("source", "unknown")
+    doc_type = data.get("type", "text")
+    
+    pipeline = RAGPipeline(session_id=session_id)
+    await pipeline.initialize()
+    
+    doc = Document(
+        content=content,
+        source=source,
+        doc_type=doc_type,
+    )
+    
+    chunk_ids = await pipeline.ingest_document(doc)
+    
+    return {
+        "document_id": doc.doc_id,
+        "chunks": len(chunk_ids),
+        "chunk_ids": chunk_ids,
+    }
+
+
+@app.post("/api/v1/sessions/{session_id}/rag/query")
+async def rag_query(
+    session_id: str,
+    data: dict,
+) -> dict:
+    """Query the RAG pipeline."""
+    from memnexus.memory.rag import RAGPipeline
+    
+    query_text = data.get("query", "")
+    top_k = data.get("top_k", 5)
+    
+    pipeline = RAGPipeline(session_id=session_id)
+    await pipeline.initialize()
+    
+    results = await pipeline.query_with_context(query_text, top_k)
+    
+    return results
+
+
+@app.post("/api/v1/sessions/{session_id}/rag/ingest-file")
+async def rag_ingest_file(
+    session_id: str,
+    data: dict,
+) -> dict:
+    """Ingest a file into RAG pipeline."""
+    from memnexus.memory.rag import RAGPipeline
+    
+    file_path = data.get("file_path", "")
+    
+    if not file_path:
+        return {"error": "file_path required"}
+    
+    pipeline = RAGPipeline(session_id=session_id)
+    await pipeline.initialize()
+    
+    try:
+        chunk_ids = await pipeline.ingest_file(file_path)
+        return {
+            "file_path": file_path,
+            "chunks": len(chunk_ids),
+            "chunk_ids": chunk_ids,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# Phase 2: Real-time Sync API
+
+@app.websocket("/ws/sync/{session_id}")
+async def sync_websocket(websocket: WebSocket, session_id: str):
+    """WebSocket for real-time memory sync."""
+    await websocket.accept()
+    
+    from memnexus.memory.sync import MemorySyncManager
+    
+    # Create sync manager
+    sync_manager = MemorySyncManager(session_id=session_id)
+    await sync_manager.initialize()
+    
+    # Watch for events
+    event_queue = await sync_manager.watch()
+    
+    try:
+        await websocket.send_json({
+            "type": "sync_connected",
+            "session_id": session_id,
+        })
+        
+        while True:
+            # Check for events
+            try:
+                event = await asyncio.wait_for(event_queue.get(), timeout=0.1)
+                await websocket.send_json(event.to_dict())
+            except asyncio.TimeoutError:
+                pass
+            
+            # Check for client messages
+            try:
+                message = await asyncio.wait_for(
+                    websocket.receive_text(),
+                    timeout=0.1
+                )
+                data = json.loads(message)
+                
+                if data.get("type") == "ping":
+                    await websocket.send_json({"type": "pong"})
+                    
+            except asyncio.TimeoutError:
+                pass
+                
+    except WebSocketDisconnect:
+        await sync_manager.close()
+    except Exception as e:
+        print(f"Sync WebSocket error: {e}")
+        await sync_manager.close()
 
 
 # WebSocket for real-time updates

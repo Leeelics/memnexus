@@ -496,6 +496,212 @@ def config_show():
     console.print(table)
 
 
+# Phase 2: ACP Protocol Commands
+
+@app.command()
+def acp_connect(
+    session_id: str = typer.Argument(..., help="Session ID"),
+    cli: str = typer.Option("claude", "--cli", "-c", help="CLI tool to connect"),
+    name: str = typer.Option(None, "--name", "-n", help="Agent name"),
+    working_dir: str = typer.Option(".", "--dir", "-d", help="Working directory"),
+):
+    """Connect an agent via ACP protocol.
+    
+    Establishes a native ACP connection to Claude Code, Kimi CLI, etc.
+    
+    Examples:
+        memnexus acp-connect sess_abc123 --cli claude
+        memnexus acp-connect sess_abc123 -c kimi -n kimi-agent -d ./project
+    """
+    name = name or cli
+    asyncio.run(_acp_connect(session_id, cli, name, working_dir))
+
+
+async def _acp_connect(
+    session_id: str,
+    cli: str,
+    name: str,
+    working_dir: str,
+):
+    """Connect agent via ACP."""
+    from memnexus.protocols.acp import ACPProtocolServer
+    
+    console.print(Panel.fit(
+        f"Connecting via ACP protocol...\n\n"
+        f"Session: [cyan]{session_id}[/cyan]\n"
+        f"Agent: [magenta]{name}[/magenta]\n"
+        f"CLI: [green]{cli}[/green]\n"
+        f"Working Dir: [yellow]{working_dir}[/yellow]",
+        title="ACP Connection",
+        border_style="blue",
+    ))
+    
+    manager = SessionManager()
+    acp_server = ACPProtocolServer(manager)
+    await acp_server.start()
+    
+    try:
+        conn = await acp_server.connect_agent(
+            cli=cli,
+            session_id=session_id,
+            working_dir=working_dir,
+        )
+        
+        if conn:
+            console.print("[green]✓[/green] ACP connection established")
+            
+            # Send a test prompt
+            console.print("\nSending test prompt...")
+            async for event in conn.send_prompt("Hello, please introduce yourself briefly."):
+                if event.type.value == "message":
+                    msg = event.data.get("message", "")
+                    console.print(f"[blue]{name}:[/blue] {msg}")
+                elif event.type.value == "error":
+                    console.print(f"[red]Error:[/red] {event.data}")
+                    
+            await conn.close()
+        else:
+            console.print("[red]✗ Failed to establish ACP connection[/red]")
+            
+    except Exception as e:
+        console.print(f"[red]✗ Error: {e}[/red]")
+    finally:
+        await acp_server.stop()
+
+
+# Phase 2: RAG Commands
+
+@app.command()
+def rag_ingest(
+    session_id: str = typer.Argument(..., help="Session ID"),
+    file_path: str = typer.Argument(..., help="File path to ingest"),
+):
+    """Ingest a file into RAG pipeline.
+    
+    Examples:
+        memnexus rag-ingest sess_abc123 README.md
+        memnexus rag-ingest sess_abc123 src/main.py
+    """
+    asyncio.run(_rag_ingest(session_id, file_path))
+
+
+async def _rag_ingest(session_id: str, file_path: str):
+    """Ingest file into RAG."""
+    from memnexus.memory.rag import RAGPipeline
+    from pathlib import Path
+    
+    path = Path(file_path)
+    if not path.exists():
+        console.print(f"[red]File not found: {file_path}[/red]")
+        return
+    
+    console.print(f"Ingesting [cyan]{file_path}[/cyan]...")
+    
+    pipeline = RAGPipeline(session_id=session_id)
+    await pipeline.initialize()
+    
+    try:
+        chunk_ids = await pipeline.ingest_file(file_path)
+        console.print(f"[green]✓[/green] Ingested {len(chunk_ids)} chunks")
+    except Exception as e:
+        console.print(f"[red]✗ Error: {e}[/red]")
+
+
+@app.command()
+def rag_query(
+    session_id: str = typer.Argument(..., help="Session ID"),
+    query: str = typer.Argument(..., help="Query text"),
+    top_k: int = typer.Option(5, "--top-k", "-k", help="Number of results"),
+):
+    """Query the RAG pipeline.
+    
+    Performs semantic search over ingested documents.
+    
+    Examples:
+        memnexus rag-query sess_abc123 "What is the architecture?"
+        memnexus rag-query sess_abc123 "API endpoints" -k 10
+    """
+    asyncio.run(_rag_query(session_id, query, top_k))
+
+
+async def _rag_query(session_id: str, query: str, top_k: int):
+    """Query RAG pipeline."""
+    from memnexus.memory.rag import RAGPipeline
+    
+    console.print(f"Querying: [cyan]'{query}'[/cyan]")
+    
+    pipeline = RAGPipeline(session_id=session_id)
+    await pipeline.initialize()
+    
+    try:
+        results = await pipeline.query_with_context(query, top_k)
+        
+        console.print(f"\n[green]Found {len(results['results'])} results:[/green]\n")
+        
+        for i, result in enumerate(results['results'], 1):
+            console.print(Panel(
+                f"{result['text'][:300]}...",
+                title=f"[{i}] {result['source']} (score: {result['score']:.3f})",
+                border_style="blue",
+            ))
+            
+        if results['sources']:
+            console.print(f"\n[dim]Sources: {', '.join(results['sources'])}[/dim]")
+            
+    except Exception as e:
+        console.print(f"[red]✗ Error: {e}[/red]")
+
+
+# Phase 2: Sync Commands
+
+@app.command()
+def sync_watch(
+    session_id: str = typer.Argument(..., help="Session ID"),
+):
+    """Watch real-time memory sync for a session.
+    
+    Displays all memory changes in real-time.
+    
+    Example:
+        memnexus sync-watch sess_abc123
+    """
+    asyncio.run(_sync_watch(session_id))
+
+
+async def _sync_watch(session_id: str):
+    """Watch memory sync."""
+    from memnexus.memory.sync import MemorySyncManager
+    
+    console.print(Panel.fit(
+        f"Watching memory sync for session [cyan]{session_id}[/cyan]\n"
+        f"Press Ctrl+C to stop",
+        title="Memory Sync",
+        border_style="green",
+    ))
+    
+    sync_manager = MemorySyncManager(session_id=session_id)
+    await sync_manager.initialize()
+    
+    # Set up event handler
+    async def on_event(event):
+        console.print(
+            f"[blue][{event.source}][/blue] "
+            f"[yellow]{event.event_type}:[/yellow] "
+            f"{event.memory.content[:80]}..."
+        )
+    
+    sync_manager.add_handler(on_event)
+    
+    try:
+        # Keep running
+        while True:
+            await asyncio.sleep(1)
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Stopping sync watch...[/yellow]")
+    finally:
+        await sync_manager.close()
+
+
 def main():
     """Main entry point."""
     app()

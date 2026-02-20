@@ -1,7 +1,7 @@
 # MemNexus - Agent Development Guide
 
 > **Language**: English / 中文 (项目文档主要使用中文，代码注释使用英文)
-> **Current Phase**: Phase 1 - Rapid Prototyping
+> **Current Phase**: Phase 3 - Full Product
 
 ---
 
@@ -69,9 +69,9 @@ memnexus/
 | `server.py` | ✅ Implemented | FastAPI app with REST API + WebSocket + HTML dashboard |
 | `cli.py` | ✅ Implemented | Full CLI with session/agent management commands |
 | `agents/` | ✅ Implemented | Base agent classes and CLI wrapper |
-| `memory/` | ✅ Implemented | LanceDB vector store + Context manager |
-| `protocols/` | ⏳ Empty | ACP/MCP protocol implementations (Phase 2) |
-| `web/` | ⏳ Empty | Streamlit/React dashboard components |
+| `memory/` | ✅ Implemented | LanceDB vector store + RAG + Sync |
+| `protocols/` | ✅ Implemented | ACP Protocol Server |
+| `web/` | ⏳ Empty | Streamlit/React dashboard components (Phase 3) |
 
 ---
 
@@ -503,6 +503,117 @@ memnexus memory-stats --session sess_abc123
 
 ---
 
+## Phase 2 Features Guide
+
+### ACP Protocol Server
+
+Native ACP connection to Claude Code, Kimi CLI:
+
+```bash
+# Connect agent via ACP
+memnexus acp-connect sess_abc123 --cli claude
+memnexus acp-connect sess_abc123 -c kimi -n kimi-agent
+```
+
+```python
+from memnexus.protocols.acp import ACPProtocolServer
+
+# Create ACP server
+server = ACPProtocolServer(session_manager)
+await server.start()
+
+# Connect an agent
+conn = await server.connect_agent(
+    cli="claude",
+    session_id="sess_123",
+)
+
+# Send prompt and stream responses
+async for event in conn.send_prompt("Hello"):
+    print(event)
+```
+
+### RAG Pipeline (LlamaIndex)
+
+Advanced document processing and retrieval:
+
+```bash
+# Ingest documents
+memnexus rag-ingest sess_abc123 README.md
+memnexus rag-ingest sess_abc123 src/main.py
+
+# Query
+memnexus rag-query sess_abc123 "What is the architecture?"
+memnexus rag-query sess_abc123 "API endpoints" -k 10
+```
+
+```python
+from memnexus.memory.rag import RAGPipeline, Document
+
+# Initialize pipeline
+pipeline = RAGPipeline(session_id="sess_123")
+await pipeline.initialize()
+
+# Ingest document
+doc = Document(content="...", source="readme.md", doc_type="markdown")
+await pipeline.ingest_document(doc)
+
+# Query with context
+results = await pipeline.query_with_context(
+    "What is the architecture?",
+    top_k=5
+)
+```
+
+### Real-time Memory Sync
+
+Real-time synchronization between agents:
+
+```bash
+# Watch memory changes
+memnexus sync-watch sess_abc123
+```
+
+```python
+from memnexus.memory.sync import MemorySyncManager, AgentMemoryBridge
+
+# Create sync manager
+sync = MemorySyncManager(session_id="sess_123")
+await sync.initialize()
+
+# Create bridge for an agent
+bridge = AgentMemoryBridge(
+    session_id="sess_123",
+    agent_name="claude",
+    sync_manager=sync,
+)
+
+# Capture agent output
+await bridge.capture_output("I've created the API")
+await bridge.capture_file_change("/path/to/file.py", "created")
+
+# Watch for changes
+async def on_event(event):
+    print(f"New memory from {event.source}")
+
+sync.add_handler(on_event)
+```
+
+### WebSocket Sync Endpoint
+
+Connect via WebSocket for real-time updates:
+
+```javascript
+const ws = new WebSocket('ws://localhost:8080/ws/sync/sess_abc123');
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log('Memory sync:', data);
+};
+```
+
+---
+
 ## Development Roadmap
 
 ### Phase 1: Rapid Prototyping (Completed)
@@ -514,15 +625,14 @@ memnexus memory-stats --session sess_abc123
 - [x] CLI Wrapper mode (temporary solution)
 - [x] Simple shared memory (LanceDB + sentence-transformers)
 
-### Phase 2: Protocol Implementation (Current)
-- [ ] ACP protocol server
-- [ ] Claude Code / Kimi CLI native ACP connection
-- [x] LanceDB + LlamaIndex integration (moved to Phase 1)
-- [x] WebSocket real-time updates (basic implementation in Phase 1)
-- [ ] Full LlamaIndex RAG pipeline
-- [ ] Real-time memory sync between agents
+### Phase 2: Protocol Implementation (Completed)
+- [x] ACP protocol server
+- [x] Claude Code / Kimi CLI native ACP connection
+- [x] Full LlamaIndex RAG pipeline
+- [x] Real-time memory sync between agents
+- [x] WebSocket real-time sync endpoint
 
-### Phase 3: Full Product
+### Phase 3: Full Product (Current)
 - [ ] Multi-agent orchestrator
 - [ ] Task dependency scheduling
 - [ ] Human intervention system
