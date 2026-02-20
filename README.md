@@ -47,16 +47,24 @@ MemNexus 是一个本地 AI OS-level 记忆守护进程，旨在连接 Claude Co
 
 ### 安装
 
+MemNexus 使用 [uv](https://github.com/astral-sh/uv) 进行快速、可靠的 Python 包管理。
+
 ```bash
 # 克隆仓库
 git clone https://github.com/Leeelics/MemNexus.git
 cd MemNexus
 
-# 安装依赖
-pip install -e ".[dev]"
+# 安装 uv（如未安装）
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 或者使用 uv
+# 安装依赖（推荐）
 uv sync
+
+# 激活虚拟环境
+source .venv/bin/activate
+
+# 或者使用 pip
+pip install -e ".[dev]"
 ```
 
 ### 启动服务

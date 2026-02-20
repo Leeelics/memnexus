@@ -57,7 +57,11 @@ Feature requests are welcome! Please:
 git clone https://github.com/YOUR_USERNAME/memnexus.git
 cd memnexus
 
-# Install Python dependencies
+# Install Python dependencies (using uv recommended)
+uv sync
+source .venv/bin/activate
+
+# Or using pip
 pip install -e ".[dev]"
 
 # Install frontend dependencies

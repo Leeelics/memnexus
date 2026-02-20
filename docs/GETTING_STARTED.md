@@ -22,14 +22,23 @@ cd MemNexus
 
 ### 2. Install Python Dependencies
 
-Using pip:
+MemNexus uses [uv](https://github.com/astral-sh/uv) for package management.
+
+**Option 1: Using uv (Recommended)**
 ```bash
-pip install -e ".[dev]"
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Sync dependencies
+uv sync
+
+# Activate virtual environment
+source .venv/bin/activate
 ```
 
-Or using uv (recommended):
+**Option 2: Using pip**
 ```bash
-uv sync
+pip install -e ".[dev]"
 ```
 
 ### 3. Install Frontend Dependencies
