@@ -7,7 +7,6 @@
 > **Multi-Agent Collaboration Orchestration System** - Breaking down memory silos between AI programming tools
 
 <p align="center">
-  <a href="#-project-overview"><img src="https://img.shields.io/badge/Phase-3%20Complete-blue?style=for-the-badge" alt="Phase 3 Complete"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12+-green?style=for-the-badge&logo=python" alt="Python 3.12+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License"></a>
   <a href="https://github.com/Leeelics/MemNexus/releases"><img src="https://img.shields.io/github/v/release/Leeelics/MemNexus?style=for-the-badge" alt="Release"></a>
@@ -15,19 +14,142 @@
 
 <p align="center">
   <a href="#-quick-start">Quick Start</a> •
+  <a href="#-features">Features</a> •
   <a href="#-documentation">Documentation</a> •
-  <a href="#-api-reference">API</a> •
-  <a href="#-license">License</a>
+  <a href="#-api-reference">API</a>
 </p>
 
-## 🎯 Project Overview
+## 🎯 Overview
 
-MemNexus is a local AI OS-level memory daemon designed to connect AI programming tools like Claude Code, Kimi CLI, and Codex, enabling:
+MemNexus is a local AI memory daemon that connects AI programming tools like Claude Code, Kimi CLI, and Codex, enabling:
 
-- **Context Sharing** - Multiple agents share memory and see each other's outputs and code changes
+- **Context Sharing** - Multiple agents share memory and see each other's outputs
 - **Task Orchestration** - Architect → Backend → Frontend → Testing automation workflow
-- **Real-time Monitoring** - Web Dashboard for viewing task status in real-time
+- **Real-time Monitoring** - Web Dashboard for viewing task status
 - **Human Intervention** - Pause, adjust, and reassign tasks at critical points
+
+## 🚀 Quick Start
+
+### Installation
+
+MemNexus uses [uv](https://github.com/astral-sh/uv) for fast, reliable Python package management.
+
+```bash
+# Clone repository
+git clone https://github.com/Leeelics/MemNexus.git
+cd MemNexus
+
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install dependencies
+uv sync
+source .venv/bin/activate
+```
+
+### Start Services
+
+```bash
+# Start backend service
+memnexus server
+
+# Start frontend (new terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+### Create Your First Session
+
+```bash
+# Create session
+memnexus session-create "My Project"
+
+# Connect Claude via ACP protocol
+memnexus acp-connect <session_id> --cli claude --name claude-backend
+
+# Or wrap existing CLI tool
+memnexus wrapper <session_id> kimi --name kimi-frontend
+```
+
+## ✨ Features
+
+### 🤖 Multi-Agent Connection
+
+Connect multiple AI assistants to work together in a shared session:
+
+```bash
+# Native ACP protocol connection (recommended)
+memnexus acp-connect <session_id> --cli claude
+memnexus acp-connect <session_id> --cli kimi -n kimi-agent
+
+# CLI wrapper mode (for any CLI tool)
+memnexus wrapper <session_id> <cli> --name <agent-name>
+```
+
+### 🧠 Shared Memory System
+
+Vector-based shared memory using LanceDB:
+
+```bash
+# Search session memory
+memnexus memory-search <session_id> "API endpoints"
+
+# View memory statistics
+memnexus memory-stats
+```
+
+### 📚 RAG Pipeline
+
+Advanced document processing with LlamaIndex:
+
+```bash
+# Ingest documents into session
+memnexus rag-ingest <session_id> README.md
+memnexus rag-ingest <session_id> src/
+
+# Query with context
+memnexus rag-query <session_id> "What is the architecture?" -k 5
+```
+
+### 🎼 Multi-Agent Orchestration
+
+Coordinate multiple agents with task dependencies:
+
+```bash
+# Create execution plan
+memnexus orchestrate <session_id> --strategy parallel
+
+# View execution plan
+memnexus plan-show <session_id>
+```
+
+Support strategies:
+- `sequential` - One agent at a time
+- `parallel` - Multiple agents simultaneously
+- `pipeline` - Stream-based execution
+- `adaptive` - AI decides optimal strategy
+
+### 👤 Human Intervention
+
+Request human approval at critical points:
+
+```bash
+# List pending interventions
+memnexus intervention-list <session_id>
+
+# Resolve intervention
+memnexus intervention-resolve <id> -a approve
+memnexus intervention-resolve <id> -a reject -m "Needs changes"
+```
+
+### 📡 Real-time Sync
+
+Watch memory changes in real-time:
+
+```bash
+memnexus sync-watch <session_id>
+```
 
 ## 🏗️ System Architecture
 
@@ -47,104 +169,6 @@ MemNexus is a local AI OS-level memory daemon designed to connect AI programming
    └─────────┘          └─────────┘          └──────────┘
 ```
 
-## 🚀 Quick Start
-
-### Installation
-
-MemNexus uses [uv](https://github.com/astral-sh/uv) for fast, reliable Python package management.
-
-```bash
-# Clone repository
-git clone https://github.com/Leeelics/MemNexus.git
-cd MemNexus
-
-# Install uv (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install dependencies (recommended)
-uv sync
-
-# Or activate the virtual environment
-source .venv/bin/activate
-
-# Alternative: Using pip
-pip install -e ".[dev]"
-```
-
-### Start Services
-
-```bash
-# Start backend service
-memnexus server
-
-# Start frontend (new terminal)
-cd frontend
-npm install
-npm run dev
-```
-
-### Create Your First Session
-
-```bash
-# Create session
-memnexus session-create "My First Project"
-
-# Connect an agent
-memnexus acp-connect <session_id> --cli claude --name claude-backend
-```
-
-## 📖 Documentation
-
-- [Getting Started](docs/GETTING_STARTED.md) - Step-by-step setup guide
-- [Architecture Overview](docs/ARCHITECTURE.md) - System design and architecture
-- [API Reference](docs/API.md) - Complete API documentation
-- [CLI Guide](docs/CLI.md) - Command-line interface reference
-- [Development Guide](docs/DEVELOPMENT.md) - Contributing and development
-- [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment
-- [ACP Protocol](docs/PROTOCOL_ACP.md) - ACP protocol specification
-- [MCP Protocol](docs/PROTOCOL_MCP.md) - MCP protocol specification
-
-## 📖 Usage Guide
-
-### Phase 1: Basic Features
-
-```bash
-# CLI Wrapper mode
-memnexus wrapper <session_id> <cli> [--name <name>]
-memnexus agent-launch <session_id> <cli>
-
-# Memory operations
-memnexus memory-search <session_id> "query"
-memnexus memory-stats
-```
-
-### Phase 2: Protocol & RAG
-
-```bash
-# ACP protocol connection
-memnexus acp-connect <session_id> --cli claude
-memnexus acp-connect <session_id> -c kimi -n kimi-agent
-
-# RAG document processing
-memnexus rag-ingest <session_id> <file_path>
-memnexus rag-query <session_id> "query" -k 10
-
-# Real-time sync monitoring
-memnexus sync-watch <session_id>
-```
-
-### Phase 3: Orchestration & Intervention
-
-```bash
-# Multi-agent orchestration
-memnexus orchestrate <session_id> --strategy parallel
-memnexus plan-show <session_id>
-
-# Human intervention
-memnexus intervention-list <session_id>
-memnexus intervention-resolve <id> -a approve
-```
-
 ## 🛠️ Tech Stack
 
 | Component | Technology | Purpose |
@@ -161,12 +185,12 @@ memnexus intervention-resolve <id> -a approve
 
 ```
 MemNexus/
-├── src/memnexus/          # Python backend (6,352 lines)
+├── src/memnexus/          # Python backend
 │   ├── agents/            # Agent implementations
-│   ├── core/              # Core functionality (Config, Session)
-│   ├── memory/            # Memory system (Store, RAG, Sync)
-│   ├── orchestrator/      # Orchestration system (Engine, Scheduler, Intervention)
-│   ├── protocols/         # Protocol implementations (ACP)
+│   ├── core/              # Core functionality
+│   ├── memory/            # Memory system
+│   ├── orchestrator/      # Orchestration system
+│   ├── protocols/         # Protocol implementations
 │   ├── cli.py             # CLI entry point
 │   └── server.py          # FastAPI server
 ├── frontend/              # React frontend
@@ -176,11 +200,6 @@ MemNexus/
 │       ├── services/      # API services
 │       └── store/         # State management
 ├── docs/                  # Documentation
-├── README.md              # This file
-├── README.zh.md           # Chinese version
-├── CHANGELOG.md           # Change log
-├── CONTRIBUTING.md        # Contribution guide
-├── SECURITY.md            # Security policy
 └── pyproject.toml         # Project configuration
 ```
 
@@ -210,11 +229,16 @@ MemNexus/
 
 See [API.md](docs/API.md) for complete documentation.
 
-## 📊 Development Phases
+## 📖 Documentation
 
-- ✅ **Phase 1** - Rapid Prototyping (CLI Wrapper + Shared Memory)
-- ✅ **Phase 2** - Protocol Implementation (ACP + RAG + Real-time Sync)
-- ✅ **Phase 3** - Full Product (Orchestrator + Intervention + React Frontend)
+- [Getting Started](docs/GETTING_STARTED.md) - Step-by-step setup guide
+- [Architecture Overview](docs/ARCHITECTURE.md) - System design and architecture
+- [API Reference](docs/API.md) - Complete API documentation
+- [CLI Guide](docs/CLI.md) - Command-line interface reference
+- [Development Guide](docs/DEVELOPMENT.md) - Contributing and development
+- [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment
+- [ACP Protocol](docs/PROTOCOL_ACP.md) - ACP protocol specification
+- [MCP Protocol](docs/PROTOCOL_MCP.md) - MCP protocol specification
 
 ## 🤝 Contributing
 
@@ -244,34 +268,7 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 ```
-
-### Why MIT License?
-
-We chose the MIT License because it:
-- ✅ Allows free use for personal and commercial projects
-- ✅ Permits modification and distribution
-- ✅ Provides liability protection
-- ✅ Is simple and widely understood
-
-## 📚 Documentation Index
-
-- [Getting Started](docs/GETTING_STARTED.md) - Step-by-step setup guide
-- [Architecture Overview](docs/ARCHITECTURE.md) - System design and architecture
-- [API Reference](docs/API.md) - Complete API documentation
-- [CLI Guide](docs/CLI.md) - Command-line interface reference
-- [Development Guide](docs/DEVELOPMENT.md) - Contributing and development
-- [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment
-- [ACP Protocol](docs/PROTOCOL_ACP.md) - ACP protocol specification
-- [MCP Protocol](docs/PROTOCOL_MCP.md) - MCP protocol specification
 
 ## 👤 Author
 
