@@ -245,6 +245,153 @@ async def memory_stats() -> dict:
     return stats
 
 
+# Phase 3: Orchestration API
+
+@app.post("/api/v1/sessions/{session_id}/plan")
+async def create_execution_plan(
+    session_id: str,
+    data: dict,
+) -> dict:
+    """Create an execution plan for a session."""
+    from memnexus.orchestrator.engine import OrchestratorEngine, OrchestrationTask
+    from memnexus.core.session import ExecutionStrategy, AgentRole
+    
+    orchestrator = OrchestratorEngine(session_manager)
+    await orchestrator.initialize(session_id)
+    
+    strategy = ExecutionStrategy(data.get("strategy", "sequential"))
+    
+    # Convert task data to OrchestrationTask objects
+    tasks = []
+    for task_data in data.get("tasks", []):
+        task = OrchestrationTask(
+            id=task_data.get("id", f"task_{len(tasks)}"),
+            name=task_data.get("name", "Unnamed Task"),
+            description=task_data.get("description", ""),
+            role=AgentRole(task_data.get("role", "backend")),
+            prompt=task_data.get("prompt", ""),
+            dependencies=task_data.get("dependencies", []),
+        )
+        tasks.append(task)
+    
+    plan = await orchestrator.create_plan(session_id, strategy, tasks)
+    
+    return {
+        "session_id": plan.session_id,
+        "strategy": plan.strategy.value,
+        "tasks": [t.to_dict() for t in plan.tasks],
+        "phases": plan.phases,
+        "progress": plan.calculate_progress(),
+    }
+
+
+@app.post("/api/v1/sessions/{session_id}/execute")
+async def execute_plan(
+    session_id: str,
+    data: dict,
+) -> dict:
+    """Execute the current plan for a session."""
+    from memnexus.orchestrator.engine import OrchestratorEngine
+    
+    orchestrator = OrchestratorEngine(session_manager)
+    await orchestrator.initialize(session_id)
+    
+    # Get existing plan or create new one
+    plan = orchestrator._plans.get(session_id)
+    if not plan:
+        return {"error": "No plan found. Create a plan first."}
+    
+    # Execute in background
+    async def execute():
+        success = await orchestrator.execute_plan(plan)
+        return success
+    
+    # Start execution
+    asyncio.create_task(execute())
+    
+    return {
+        "status": "started",
+        "session_id": session_id,
+        "task_count": len(plan.tasks),
+    }
+
+
+@app.get("/api/v1/sessions/{session_id}/progress")
+async def get_execution_progress(session_id: str) -> dict:
+    """Get execution progress for a session."""
+    from memnexus.orchestrator.engine import OrchestratorEngine
+    
+    orchestrator = OrchestratorEngine(session_manager)
+    plan = orchestrator._plans.get(session_id)
+    
+    if not plan:
+        return {"error": "No plan found"}
+    
+    return {
+        "session_id": session_id,
+        "progress": plan.calculate_progress(),
+        "tasks": [t.to_dict() for t in plan.tasks],
+        "phases": plan.phases,
+    }
+
+
+@app.post("/api/v1/sessions/{session_id}/cancel")
+async def cancel_execution(session_id: str) -> dict:
+    """Cancel execution for a session."""
+    from memnexus.orchestrator.engine import OrchestratorEngine
+    
+    orchestrator = OrchestratorEngine(session_manager)
+    await orchestrator.cancel(session_id)
+    
+    return {"status": "cancelled", "session_id": session_id}
+
+
+# Phase 3: Intervention API
+
+@app.get("/api/v1/sessions/{session_id}/interventions")
+async def get_interventions(
+    session_id: str,
+    status: Optional[str] = None,
+) -> List[dict]:
+    """Get interventions for a session."""
+    from memnexus.orchestrator.intervention import HumanInterventionSystem, InterventionStatus
+    
+    intervention_system = HumanInterventionSystem()
+    await intervention_system.initialize()
+    
+    if status:
+        interventions = intervention_system.get_session_interventions(
+            session_id, InterventionStatus(status)
+        )
+    else:
+        interventions = intervention_system.get_session_interventions(session_id)
+    
+    return [i.to_dict() for i in interventions]
+
+
+@app.post("/api/v1/interventions/{intervention_id}/resolve")
+async def resolve_intervention(
+    intervention_id: str,
+    data: dict,
+) -> dict:
+    """Resolve an intervention."""
+    from memnexus.orchestrator.intervention import HumanInterventionSystem
+    
+    intervention_system = HumanInterventionSystem()
+    await intervention_system.initialize()
+    
+    resolution = data.get("resolution", {})
+    resolved_by = data.get("resolved_by", "human")
+    
+    point = await intervention_system.resolve(
+        intervention_id, resolution, resolved_by
+    )
+    
+    if point:
+        return point.to_dict()
+    return {"error": "Intervention not found"}
+
+
 # Phase 2: ACP Protocol API
 
 @app.post("/api/v1/sessions/{session_id}/agents/connect")

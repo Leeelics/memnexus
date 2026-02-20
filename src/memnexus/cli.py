@@ -702,6 +702,222 @@ async def _sync_watch(session_id: str):
         await sync_manager.close()
 
 
+# Phase 3: Orchestration Commands
+
+@app.command()
+def orchestrate(
+    session_id: str = typer.Argument(..., help="Session ID"),
+    strategy: str = typer.Option("sequential", "--strategy", "-s", help="Execution strategy"),
+    config_file: Optional[str] = typer.Option(None, "--config", "-c", help="Task config file"),
+):
+    """Start orchestration for a session.
+    
+    Coordinates multiple agents to work on complex tasks.
+    
+    Examples:
+        memnexus orchestrate sess_abc123 --strategy parallel
+        memnexus orchestrate sess_abc123 -c tasks.yaml
+    """
+    asyncio.run(_orchestrate(session_id, strategy, config_file))
+
+
+async def _orchestrate(session_id: str, strategy: str, config_file: Optional[str]):
+    """Run orchestration."""
+    from memnexus.orchestrator.engine import OrchestratorEngine, OrchestrationTask
+    from memnexus.core.session import AgentRole, ExecutionStrategy
+    
+    console.print(Panel.fit(
+        f"Starting orchestration...\n\n"
+        f"Session: [cyan]{session_id}[/cyan]\n"
+        f"Strategy: [green]{strategy}[/green]",
+        title="Orchestration",
+        border_style="blue",
+    ))
+    
+    # Create orchestrator
+    orchestrator = OrchestratorEngine(session_manager)
+    await orchestrator.initialize(session_id)
+    
+    # Create sample tasks if no config file
+    tasks = [
+        OrchestrationTask(
+            id="task_1",
+            name="Design Architecture",
+            description="Design system architecture",
+            role=AgentRole.ARCHITECT,
+            prompt="Design the system architecture for this project",
+        ),
+        OrchestrationTask(
+            id="task_2",
+            name="Implement Backend",
+            description="Implement backend API",
+            role=AgentRole.BACKEND,
+            prompt="Implement the backend API based on the architecture",
+            dependencies=["task_1"],
+        ),
+        OrchestrationTask(
+            id="task_3",
+            name="Implement Frontend",
+            description="Implement frontend UI",
+            role=AgentRole.FRONTEND,
+            prompt="Implement the frontend UI",
+            dependencies=["task_1"],
+        ),
+        OrchestrationTask(
+            id="task_4",
+            name="Write Tests",
+            description="Write integration tests",
+            role=AgentRole.TESTER,
+            prompt="Write comprehensive tests for the system",
+            dependencies=["task_2", "task_3"],
+        ),
+    ]
+    
+    # Create plan
+    plan = await orchestrator.create_plan(
+        session_id=session_id,
+        strategy=ExecutionStrategy(strategy),
+        tasks=tasks,
+    )
+    
+    console.print(f"\n[green]✓[/green] Plan created with {len(tasks)} tasks")
+    console.print(f"[dim]Phases: {len(plan.phases)}[/dim]")
+    
+    # Progress callback
+    def on_progress(event):
+        if event.get("type") == "task_progress":
+            task_id = event.get("task_id")
+            status = event.get("data", {}).get("status")
+            console.print(f"Task {task_id}: {status}")
+    
+    # Execute
+    console.print("\n[blue]Executing plan...[/blue]\n")
+    success = await orchestrator.execute_plan(plan, on_event=on_progress)
+    
+    if success:
+        console.print("\n[green]✓[/green] Orchestration completed successfully")
+    else:
+        console.print("\n[red]✗[/red] Orchestration failed")
+    
+    await orchestrator.close(session_id)
+
+
+@app.command()
+def plan_show(
+    session_id: str = typer.Argument(..., help="Session ID"),
+):
+    """Show execution plan for a session."""
+    asyncio.run(_plan_show(session_id))
+
+
+async def _plan_show(session_id: str):
+    """Show execution plan."""
+    from memnexus.orchestrator.engine import OrchestratorEngine
+    
+    orchestrator = OrchestratorEngine(session_manager)
+    plan = orchestrator._plans.get(session_id)
+    
+    if not plan:
+        console.print(f"[yellow]No plan found for session {session_id}[/yellow]")
+        return
+    
+    # Display plan
+    table = Table(title=f"Execution Plan: {session_id}")
+    table.add_column("Task", style="cyan")
+    table.add_column("Role", style="magenta")
+    table.add_column("Status", style="green")
+    table.add_column("Dependencies", style="yellow")
+    
+    for task in plan.tasks:
+        table.add_row(
+            task.name,
+            task.role.value,
+            task.state.value,
+            ", ".join(task.dependencies) if task.dependencies else "None",
+        )
+    
+    console.print(table)
+    console.print(f"\nStrategy: [blue]{plan.strategy.value}[/blue]")
+    console.print(f"Progress: [green]{plan.calculate_progress() * 100:.1f}%[/green]")
+
+
+# Phase 3: Intervention Commands
+
+@app.command()
+def intervention_list(
+    session_id: str = typer.Argument(..., help="Session ID"),
+    status: Optional[str] = typer.Option(None, "--status", "-s", help="Filter by status"),
+):
+    """List interventions for a session."""
+    asyncio.run(_intervention_list(session_id, status))
+
+
+async def _intervention_list(session_id: str, status: Optional[str]):
+    """List interventions."""
+    from memnexus.orchestrator.intervention import HumanInterventionSystem, InterventionStatus
+    
+    intervention_system = HumanInterventionSystem()
+    await intervention_system.initialize()
+    
+    if status:
+        interventions = intervention_system.get_session_interventions(
+            session_id, InterventionStatus(status)
+        )
+    else:
+        interventions = intervention_system.get_session_interventions(session_id)
+    
+    if not interventions:
+        console.print("[dim]No interventions found[/dim]")
+        return
+    
+    table = Table(title=f"Interventions: {session_id}")
+    table.add_column("ID", style="cyan")
+    table.add_column("Type", style="magenta")
+    table.add_column("Title", style="green")
+    table.add_column("Status", style="yellow")
+    
+    for i in interventions:
+        table.add_row(i.id, i.type.value, i.title, i.status.value)
+    
+    console.print(table)
+
+
+@app.command()
+def intervention_resolve(
+    intervention_id: str = typer.Argument(..., help="Intervention ID"),
+    action: str = typer.Option(..., "--action", "-a", help="Action: approve, reject, modify"),
+    message: Optional[str] = typer.Option(None, "--message", "-m", help="Resolution message"),
+):
+    """Resolve an intervention.
+    
+    Examples:
+        memnexus intervention-resolve int_abc123 -a approve
+        memnexus intervention-resolve int_abc123 -a reject -m "Needs changes"
+    """
+    asyncio.run(_intervention_resolve(intervention_id, action, message))
+
+
+async def _intervention_resolve(intervention_id: str, action: str, message: Optional[str]):
+    """Resolve an intervention."""
+    from memnexus.orchestrator.intervention import HumanInterventionSystem
+    
+    intervention_system = HumanInterventionSystem()
+    await intervention_system.initialize()
+    
+    resolution = {"action": action}
+    if message:
+        resolution["message"] = message
+    
+    point = await intervention_system.resolve(
+        intervention_id, resolution, resolved_by="human"
+    )
+    
+    if point:
+        console.print(f"[green]✓[/green] Intervention {intervention_id} resolved with action: {action}")
+    else:
+        console.print(f"[red]✗[/red] Intervention {intervention_id} not found")
+
+
 def main():
     """Main entry point."""
     app()
