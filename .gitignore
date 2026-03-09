@@ -79,3 +79,8 @@ frontend/.cache/
 *.bak
 *.tmp
 *.temp
+
+# Research (local only, not tracked)
+research/
+!research/README.md  # Keep only the index
+!research/**/README.md  # Keep sub-indexes
