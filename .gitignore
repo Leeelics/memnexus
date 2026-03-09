@@ -84,3 +84,6 @@ frontend/.cache/
 research/
 !research/README.md  # Keep only the index
 !research/**/README.md  # Keep sub-indexes
+
+# Sisyphus planning files (development only)
+.sisyphus/
