@@ -81,9 +81,9 @@ mnx = "memnexus.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/Leeelics/MemNexus"
-Documentation = "https://memnexus.readthedocs.io"
-Repository = "https://github.com/Leeelics/MemNexus.git"
-Issues = "https://github.com/Leeelics/MemNexus/issues"
+Repository = "https://github.com/Leeelics/MemNexus"
+Documentation = "https://github.com/Leeelics/MemNexus#readme"
+Changelog = "https://github.com/Leeelics/MemNexus/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]
