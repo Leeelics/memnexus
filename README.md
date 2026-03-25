@@ -1,10 +1,10 @@
-# MemNexus - Multi-Agent Collaboration System
+# MemNexus - Code Memory for AI Programming Tools
 
 <p align="center">
   <b>English</b> | <a href="README.zh.md">简体中文</a>
 </p>
 
-> **Multi-Agent Collaboration Orchestration System** - Breaking down memory silos between AI programming tools
+> **Code Memory Layer** - Persistent memory for AI coding assistants
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12+-green?style=for-the-badge&logo=python" alt="Python 3.12+"></a>
@@ -16,279 +16,137 @@
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-features">Features</a> •
   <a href="#-documentation">Documentation</a> •
-  <a href="#-api-reference">API</a>
+  <a href="#-roadmap">Roadmap</a>
 </p>
 
 ## 🎯 Overview
 
-MemNexus is a local AI memory daemon that connects AI programming tools like Claude Code, Kimi CLI, and Codex, enabling:
+MemNexus provides **persistent memory** for AI programming tools like Claude Code, Kimi CLI, and Codex.
 
-- **Context Sharing** - Multiple agents share memory and see each other's outputs
-- **Task Orchestration** - Architect → Backend → Frontend → Testing automation workflow
-- **Real-time Monitoring** - Web Dashboard for viewing task status
-- **Human Intervention** - Pause, adjust, and reassign tasks at critical points
+When you switch between AI tools or start a new session, MemNexus remembers:
+- What you built and why
+- Code changes and their history
+- Project context and decisions
+
+**Problem it solves:**
+> "Yesterday I used Claude to build a login feature. Today I'm using Kimi to optimize it. 
+> Do I have to explain the entire project structure again?"
+> 
+> **With MemNexus: No.** Your AI assistants remember.
 
 ## 🚀 Quick Start
 
 ### Installation
 
-MemNexus uses [uv](https://github.com/astral-sh/uv) for fast, reliable Python package management.
-
 ```bash
-# Clone repository
-git clone https://github.com/Leeelics/MemNexus.git
-cd MemNexus
+# Install with uv (recommended)
+uv tool install memnexus
 
-# Install uv (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install dependencies
-uv sync
-source .venv/bin/activate
+# Or with pip
+pip install memnexus
 ```
 
-### Start Services
+### Initialize Project
 
 ```bash
-# Start backend service
+# In your project directory
+cd my-project
+memnexus init
+
+# Output:
+# ✓ Created .memnexus/ directory
+# ✓ Generated config.yaml
+# ✓ Detected Git repository
+```
+
+### Start Server
+
+```bash
 memnexus server
 
-# Start frontend (new terminal)
-cd frontend
-npm install
-npm run dev
+# Server running at http://localhost:8080
 ```
 
-### Create Your First Session
+### Use the API
 
-```bash
-# Create session
-memnexus session-create "My Project"
+```python
+import requests
 
-# Connect Claude via ACP protocol
-memnexus acp-connect <session_id> --cli claude --name claude-backend
-
-# Or wrap existing CLI tool
-memnexus wrapper <session_id> kimi --name kimi-frontend
+# Search memory
+response = requests.get(
+    "http://localhost:8080/api/v1/memory/search",
+    params={"q": "login authentication"}
+)
+print(response.json())
 ```
 
 ## ✨ Features
 
-### 🤖 Multi-Agent Connection
+### Current (v0.1)
 
-Connect multiple AI assistants to work together in a shared session:
+- **🧠 Vector Memory** - Semantic search using LanceDB
+- **📊 Session Management** - Track AI tool interactions
+- **🌐 HTTP API** - RESTful API for integration
+- **⚡ Fast & Local** - Runs locally, no cloud required
 
-```bash
-# Native ACP protocol connection (recommended)
-memnexus acp-connect <session_id> --cli claude
-memnexus acp-connect <session_id> --cli kimi -n kimi-agent
+### Coming Soon
 
-# CLI wrapper mode (for any CLI tool)
-memnexus wrapper <session_id> <cli> --name <agent-name>
-```
-
-### 🧠 Shared Memory System
-
-Vector-based shared memory using LanceDB:
-
-```bash
-# Search session memory
-memnexus memory-search <session_id> "API endpoints"
-
-# View memory statistics
-memnexus memory-stats
-```
-
-### 📚 RAG Pipeline
-
-Advanced document processing with LlamaIndex:
-
-```bash
-# Ingest documents into session
-memnexus rag-ingest <session_id> README.md
-memnexus rag-ingest <session_id> src/
-
-# Query with context
-memnexus rag-query <session_id> "What is the architecture?" -k 5
-```
-
-### 🎼 Multi-Agent Orchestration
-
-Coordinate multiple agents with task dependencies:
-
-```bash
-# Create execution plan
-memnexus orchestrate <session_id> --strategy parallel
-
-# View execution plan
-memnexus plan-show <session_id>
-```
-
-Support strategies:
-- `sequential` - One agent at a time
-- `parallel` - Multiple agents simultaneously
-- `pipeline` - Stream-based execution
-- `adaptive` - AI decides optimal strategy
-
-### 👤 Human Intervention
-
-Request human approval at critical points:
-
-```bash
-# List pending interventions
-memnexus intervention-list <session_id>
-
-# Resolve intervention
-memnexus intervention-resolve <id> -a approve
-memnexus intervention-resolve <id> -a reject -m "Needs changes"
-```
-
-### 📡 Real-time Sync
-
-Watch memory changes in real-time:
-
-```bash
-memnexus sync-watch <session_id>
-```
-
-## 🏗️ System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      MemNexus Core                          │
-├──────────────┬──────────────┬──────────────┬────────────────┤
-│   Session    │    Agent     │    Task      │    Memory      │
-│  (Workspace) │ (AI Instance)│  (Task Unit) │   (Storage)    │
-└──────────────┴──────────────┴──────────────┴────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        ▼                     ▼                     ▼
-   ┌─────────┐          ┌─────────┐          ┌──────────┐
-   │  ACP    │          │  RAG    │          │  React   │
-   │ Protocol│          │ Pipeline│          │ Frontend │
-   └─────────┘          └─────────┘          └──────────┘
-```
-
-## 🛠️ Tech Stack
-
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| Web Framework | FastAPI + Uvicorn | Async web server and API |
-| CLI Framework | Typer + Rich | Interactive command-line interface |
-| Vector Database | LanceDB | Embedded vector + full-text search |
-| RAG Pipeline | LlamaIndex | Document chunking and retrieval |
-| Frontend | React + TypeScript + Tailwind | Modern web interface |
-| State Management | Zustand | Frontend state management |
-| Protocol | ACP (JSON-RPC) | Agent communication protocol |
-
-## 📁 Project Structure
-
-```
-MemNexus/
-├── src/memnexus/          # Python backend
-│   ├── agents/            # Agent implementations
-│   ├── core/              # Core functionality
-│   ├── memory/            # Memory system
-│   ├── orchestrator/      # Orchestration system
-│   ├── protocols/         # Protocol implementations
-│   ├── cli.py             # CLI entry point
-│   └── server.py          # FastAPI server
-├── frontend/              # React frontend
-│   └── src/
-│       ├── components/    # Reusable components
-│       ├── pages/         # Page components
-│       ├── services/      # API services
-│       └── store/         # State management
-├── docs/                  # Documentation
-└── pyproject.toml         # Project configuration
-```
-
-## 🔌 API Reference
-
-### Sessions
-- `GET /api/v1/sessions` - List all sessions
-- `POST /api/v1/sessions` - Create session
-- `GET /api/v1/sessions/{id}` - Get session details
-
-### Agents
-- `POST /api/v1/sessions/{id}/agents/connect` - ACP connection
-- `POST /api/v1/sessions/{id}/agents/launch` - Launch agent
-
-### Memory & RAG
-- `GET /api/v1/sessions/{id}/memory` - Query memory
-- `POST /api/v1/sessions/{id}/rag/query` - RAG query
-
-### Orchestration
-- `POST /api/v1/sessions/{id}/plan` - Create execution plan
-- `POST /api/v1/sessions/{id}/execute` - Execute plan
-- `GET /api/v1/sessions/{id}/interventions` - Get intervention list
-
-### WebSocket
-- `WS /ws` - Real-time updates
-- `WS /ws/sync/{session_id}` - Memory sync
-
-See [API.md](docs/API.md) for complete documentation.
+- **🔀 Git Integration** - Index commit history and code changes
+- **📁 Code-Aware RAG** - AST-based code understanding
+- **🔌 Vibe Kanban Plugin** - Memory for your kanban workflows
 
 ## 📖 Documentation
 
-- [Getting Started](docs/GETTING_STARTED.md) - Step-by-step setup guide
-- [Architecture Overview](docs/ARCHITECTURE.md) - System design and architecture
+- [Vision & Positioning](docs/VISION.md) - Product vision and market positioning
+- [Roadmap](docs/ROADMAP.md) - Development roadmap and milestones
 - [API Reference](docs/API.md) - Complete API documentation
-- [CLI Guide](docs/CLI.md) - Command-line interface reference
-- [Development Guide](docs/DEVELOPMENT.md) - Contributing and development
-- [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment
-- [ACP Protocol](docs/PROTOCOL_ACP.md) - ACP protocol specification
-- [MCP Protocol](docs/PROTOCOL_MCP.md) - MCP protocol specification
+
+## 🛣️ Roadmap
+
+```
+Month 1: Core Foundation
+├── Week 1-2: Code cleanup, Git integration MVP
+└── Week 3-4: Code-aware RAG MVP
+
+Month 2: Integration
+├── Week 5-6: Vibe Kanban plugin
+└── Week 7-8: User validation & iteration
+
+Month 3+: Ecosystem
+├── Multi-tool support (Kimi, VSCode, etc.)
+└── Team collaboration features
+```
+
+See [ROADMAP.md](docs/ROADMAP.md) for details.
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     AI Programming Tools                     │
+│         (Claude Code, Kimi CLI, Codex, etc.)                 │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      MemNexus API                            │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+│  │    Git      │  │    Code     │  │   Vector Memory     │  │
+│  │  Extractor  │  │   Parser    │  │    (LanceDB)        │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## 🤝 Contributing
 
-1. Fork the project
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📝 License
 
 MemNexus is licensed under the [MIT License](LICENSE).
 
-```
-MIT License
-
-Copyright (c) 2026 Leeelics
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-```
-
-## 👤 Author
-
-**Leeelics** - [GitHub](https://github.com/Leeelics)
-
-## 🙏 Acknowledgments
-
-- [FastAPI](https://fastapi.tiangolo.com/) - Web framework
-- [LlamaIndex](https://www.llamaindex.ai/) - RAG framework
-- [LanceDB](https://lancedb.github.io/lancedb/) - Vector database
-- [React](https://react.dev/) - Frontend framework
-- [Astral](https://astral.sh/) - uv package manager
-
 ---
 
 <p align="center">
-  <b>MemNexus</b> - Let multiple AI assistants collaborate and break memory silos
-</p>
-
-<p align="center">
-  <a href="https://github.com/Leeelics/MemNexus">⭐ Star us on GitHub</a> •
-  <a href="README.zh.md">🇨🇳 中文文档</a>
+  <b>MemNexus</b> - Let your AI assistants remember
 </p>
