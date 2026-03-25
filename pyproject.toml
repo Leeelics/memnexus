@@ -1,18 +1,19 @@
 [project]
 name = "memnexus"
 version = "0.1.0"
-description = "Multi-Agent Collaboration Orchestration System"
+description = "Code Memory for AI Programming Tools - Persistent memory for Kimi CLI, Claude Code, and other AI coding assistants"
 readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "MIT"}
 authors = [
-    {name = "Leeelics", email = "your.email@example.com"}
+    {name = "Leeelics", email = "leeelics@example.com"}
 ]
-keywords = ["ai", "agents", "claude", "kimi", "collaboration", "mcp", "acp"]
+keywords = ["ai", "code-memory", "kimi-cli", "claude-code", "git", "vector-search", "rag", "developer-tools", "code-intelligence"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
