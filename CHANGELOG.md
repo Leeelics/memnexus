@@ -2,74 +2,106 @@
 
 All notable changes to MemNexus will be documented in this file.
 
-## [0.1.0] - 2026-02-20
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### 🎉 Initial Release - Complete 3-Phase Development
+## [Unreleased]
 
-#### Phase 1: Rapid Prototyping
-- CLI Wrapper mode for wrapping existing CLI tools (claude, kimi, codex)
-- Shared Memory system with LanceDB vector storage
-- Context Manager for semantic search
-- REST API + WebSocket support
-- Basic HTML dashboard
+## [0.2.0] - 2026-03-25
 
-**New Files:**
-- `src/memnexus/agents/base.py` - BaseAgent abstract class
-- `src/memnexus/agents/wrapper.py` - CLI Wrapper implementation
-- `src/memnexus/memory/store.py` - MemoryStore with LanceDB
-- `src/memnexus/memory/context.py` - ContextManager
+### 🎉 First Public Release - Code Memory for AI Programming Tools
 
-#### Phase 2: Protocol Implementation
-- ACP Protocol Server (JSON-RPC over stdio)
-- Native ACP connection for Claude Code and Kimi CLI
-- Full LlamaIndex RAG Pipeline with document chunking
-- Real-time memory synchronization with pub/sub
-- WebSocket sync endpoint
+This is the first public release of MemNexus as a **Code Memory** tool for AI programming assistants.
 
-**New Files:**
-- `src/memnexus/protocols/acp.py` - ACP Protocol implementation
-- `src/memnexus/memory/rag.py` - RAG Pipeline with LlamaIndex
-- `src/memnexus/memory/sync.py` - Memory sync system
+### ✨ New Features
 
-#### Phase 3: Full Product
-- Multi-Agent Orchestrator with dependency management
-- Task Scheduler with critical path analysis
-- Human Intervention System with approval workflows
-- React Frontend with real-time dashboard
+#### Core Memory System
+- **CodeMemory** - Main entry point for library usage
+- **Vector Storage** - LanceDB-based semantic search
+- **MemoryStore** - Add, search, and manage memory entries
 
-**New Files:**
-- `src/memnexus/orchestrator/engine.py` - Orchestration engine
-- `src/memnexus/orchestrator/scheduler.py` - Task scheduler
-- `src/memnexus/orchestrator/intervention.py` - Intervention system
-- `frontend/` - Complete React frontend application
+#### Git Integration
+- **GitMemoryExtractor** - Extract commit history from Git repositories
+- **Commit Indexing** - Index commit messages, authors, and file changes
+- **Semantic Search** - Search Git history with natural language
+- **File History** - Get complete history for specific files
 
-### API Endpoints
+#### Code Parsing
+- **CodeParser** - Parse Python code using AST
+- **Symbol Extraction** - Extract functions, classes, and methods
+- **Import Analysis** - Extract and analyze import statements
+- **CodeChunker** - Create embeddable code chunks with context
+- **Signature Extraction** - Capture function signatures with type annotations
 
-#### New Endpoints
-- `POST /api/v1/sessions/{id}/agents/connect` - ACP agent connection
-- `POST /api/v1/sessions/{id}/rag/query` - RAG query
-- `POST /api/v1/sessions/{id}/plan` - Create execution plan
-- `POST /api/v1/sessions/{id}/execute` - Execute orchestration plan
-- `GET /api/v1/sessions/{id}/interventions` - List interventions
-- `POST /api/v1/interventions/{id}/resolve` - Resolve intervention
-- `WS /ws/sync/{session_id}` - Real-time memory sync
+#### CLI Interface
+- **memnexus init** - Initialize project for memory tracking
+- **memnexus index** - Index Git history and/or code
+- **memnexus search** - Search project memory
+- **memnexus status** - Check project indexing status
+- **memnexus server** - Start HTTP API server
 
-### CLI Commands
+#### HTTP API
+- `GET /health` - Health check
+- `GET /stats` - Project statistics
+- `GET /api/v1/search` - Search all memories
+- `POST /api/v1/memory` - Add memory entry
+- `POST /api/v1/git/index` - Index Git history
+- `GET /api/v1/git/search` - Search Git history
+- `POST /api/v1/code/index` - Index codebase
+- `GET /api/v1/code/search` - Search code symbols
+- `GET /api/v1/code/symbol/{name}` - Find specific symbol
 
-#### New Commands
-- `memnexus acp-connect` - Connect agent via ACP protocol
-- `memnexus rag-ingest` - Ingest file to RAG pipeline
-- `memnexus rag-query` - Query RAG pipeline
-- `memnexus sync-watch` - Watch real-time memory sync
-- `memnexus orchestrate` - Start multi-agent orchestration
-- `memnexus plan-show` - Display execution plan
-- `memnexus intervention-list` - Show pending interventions
-- `memnexus intervention-resolve` - Resolve an intervention
+#### Kimi CLI Plugin
+- **Plugin Support** - Native integration with Kimi CLI 1.25.0+
+- **6 Tools** - memory_search, memory_store, memory_status, memory_index, find_symbol, get_file_history
+- **Slash Commands** - `/memory search`, `/memory store`, `/memory status`, etc.
 
-### Statistics
-- Total Lines of Code: ~11,334
-- Python Files: 20+
-- Frontend Files: 16
-- Git Commits: 3 major milestones
+### 🐛 Known Issues
 
+- Code parsing currently only supports Python
+- TypeScript/JavaScript support coming in next release
+- Large repositories may require tuning batch sizes
+
+### 📁 New Files
+
+```
+src/memnexus/
+├── __init__.py              # Main exports
+├── code_memory.py           # Core CodeMemory class
+├── cli.py                   # CLI interface
+├── server.py                # FastAPI server
+├── memory/
+│   ├── git.py              # Git integration
+│   ├── code.py             # Code parsing
+│   └── store.py            # Vector storage
+└── scripts/
+    └── kimi_plugin.py      # Kimi CLI plugin
+
+~/.kimi/plugins/memnexus/
+├── plugin.json             # Plugin manifest
+└── SKILL.md                # Plugin documentation
+```
+
+### 📊 Statistics
+
+- Total Lines of Code: ~5,000
+- Python Files: 15
+- Test Coverage: Core functionality tested
+- Documentation: Complete user guides
+
+## [0.1.0] - 2026-02-20 (Internal)
+
+### Initial Prototype
+
+> **Note:** This was an internal prototype with a different focus (Multi-Agent Orchestration). 
+> The project was significantly refactored for the 0.2.0 release.
+
+Original features:
+- Multi-Agent Collaboration Orchestration
+- ACP Protocol implementation
+- LlamaIndex RAG Pipeline
+- React Frontend
+- Task Scheduler and Intervention System
+
+[0.2.0]: https://github.com/Leeelics/MemNexus/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Leeelics/MemNexus/releases/tag/v0.1.0
