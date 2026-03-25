@@ -1,30 +1,30 @@
-# MemNexus 开发指南
+# MemNexus Development Guide
 
-## 开发环境搭建
+## Development Environment Setup
 
-### 1. 克隆仓库
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/Leeelics/MemNexus.git
 cd MemNexus
 ```
 
-### 2. 安装依赖
+### 2. Install Dependencies
 
-使用 `uv`（推荐）：
+**Using uv (Recommended):**
 
 ```bash
-# 安装 uv（如果还没有）
+# Install uv if not already installed
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 创建虚拟环境并安装依赖
+# Create virtual environment and install dependencies
 uv sync
 
-# 安装开发依赖
-uv sync --extra dev
+# Activate virtual environment
+source .venv/bin/activate
 ```
 
-或使用 `pip`：
+**Using pip:**
 
 ```bash
 python -m venv .venv
@@ -32,235 +32,164 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-### 3. 启动服务
+### 3. Start Development Server
 
 ```bash
-# 启动 API 服务器
+# Start API server
 memnexus server
 
-# 或开发模式（热重载）
+# Or with hot reload
 memnexus server --reload
-
-# 启动 Web Dashboard
-memnexus web
 ```
 
-### 4. 运行测试
+### 4. Run Tests
 
 ```bash
-# 运行所有测试
-uv run pytest
+# Run all tests
+pytest
 
-# 运行特定测试
-uv run pytest tests/test_session.py -v
+# Run specific test file
+pytest tests/test_week2_complete.py
 
-# 带覆盖率
-uv run pytest --cov=memnexus --cov-report=html
+# Run with verbose output
+pytest -v
 ```
 
-### 5. 代码检查
+## Project Structure
+
+```
+src/memnexus/
+├── __init__.py              # Package exports
+├── code_memory.py           # Core CodeMemory class
+├── cli.py                   # CLI interface
+├── server.py                # FastAPI server
+└── memory/                  # Memory system
+    ├── store.py             # LanceDB vector storage
+    ├── git.py               # Git integration
+    └── code.py              # Code parsing
+```
+
+## Code Style
+
+We use:
+- **ruff** for linting and formatting
+- **mypy** for type checking
+- Line length: 100 characters
+
+### Before Committing
 
 ```bash
-# 格式化
-uv run ruff format .
+# Format code
+ruff format .
 
-# 检查
-uv run ruff check .
+# Check linting
+ruff check . --fix
 
-# 类型检查
-uv run mypy src/memnexus
+# Type check
+mypy src/memnexus
 ```
 
-## 项目结构
+## Adding New Features
 
-```
-memnexus/
-├── src/memnexus/           # 核心代码
-│   ├── core/               # 核心逻辑
-│   │   ├── config.py       # 配置管理
-│   │   ├── session.py      # 会话管理
-│   │   └── orchestrator.py # 编排器
-│   ├── agents/             # Agent 适配器
-│   │   ├── base.py         # 基类
-│   │   ├── claude.py       # Claude Code
-│   │   ├── kimi.py         # Kimi CLI
-│   │   └── registry.py     # 注册表
-│   ├── protocols/          # 协议实现
-│   │   ├── acp.py          # ACP 协议
-│   │   └── mcp.py          # MCP 协议
-│   ├── memory/             # 记忆系统
-│   │   ├── store.py        # LanceDB 存储
-│   │   ├── indexer.py      # LlamaIndex
-│   │   └── models.py       # 数据模型
-│   ├── web/                # Web 界面
-│   │   ├── api.py          # API 路由
-│   │   └── dashboard.py    # Streamlit
-│   ├── server.py           # FastAPI 入口
-│   └── cli.py              # CLI 入口
-├── tests/                  # 测试
-├── docs/                   # 文档
-├── frontend/               # React 前端（未来）
-└── scripts/                # 脚本
-```
+### Adding a New CLI Command
 
-## 开发工作流
-
-### 添加新的 Agent 支持
-
-1. 在 `src/memnexus/agents/` 创建新文件
-2. 继承 `BaseAgent` 类
-3. 实现必需的方法
-4. 在 `registry.py` 注册
-
-示例：
+Edit `src/memnexus/cli.py`:
 
 ```python
-# src/memnexus/agents/custom.py
-
-from memnexus.agents.base import BaseAgent, AgentConfig
-
-class CustomAgent(BaseAgent):
-    """自定义 Agent."""
-    
-    name = "custom"
-    protocol = "acp"
-    
-    async def spawn(self, config: AgentConfig):
-        """启动进程."""
-        pass
-    
-    def parse_output(self, line: str):
-        """解析输出."""
-        pass
-
-# src/memnexus/agents/registry.py
-from memnexus.agents.custom import CustomAgent
-
-AGENT_REGISTRY = {
-    "claude": ClaudeAgent,
-    "kimi": KimiAgent,
-    "custom": CustomAgent,  # 添加这里
-}
+@app.command()
+def my_command(
+    arg: str = typer.Argument(..., help="Argument description"),
+):
+    """Command description."""
+    # Implementation
 ```
 
-### 添加新的编排策略
+### Adding a New API Endpoint
+
+Edit `src/memnexus/server.py`:
 
 ```python
-# src/memnexus/core/strategies.py
-
-from abc import ABC, abstractmethod
-
-class BaseStrategy(ABC):
-    """编排策略基类."""
-    
-    @abstractmethod
-    async def schedule(self, tasks, agents) -> List[TaskAssignment]:
-        """调度任务."""
-        pass
-
-class RoundRobinStrategy(BaseStrategy):
-    """轮询策略."""
-    
-    async def schedule(self, tasks, agents):
-        assignments = []
-        for i, task in enumerate(tasks):
-            agent = agents[i % len(agents)]
-            assignments.append(TaskAssignment(task, agent))
-        return assignments
+@app.get("/api/v1/my-endpoint")
+async def my_endpoint(param: str) -> Dict:
+    """Endpoint description."""
+    return {"result": "value"}
 ```
 
-## 调试技巧
+### Adding Code Parser Support for New Language
 
-### 1. 查看日志
+Edit `src/memnexus/memory/code.py`:
 
-```bash
-# 实时查看日志
-tail -f ~/.memnexus/logs/memnexus.log
+1. Add language detection in `_detect_language()`
+2. Implement parser method (e.g., `_parse_typescript_file()`)
+3. Update `parse_file()` to route to new parser
 
-# 或使用 rich 格式
-memnexus logs --follow
-```
+## Testing
 
-### 2. 调试 Agent 输出
+### Writing Tests
+
+Place tests in `tests/` directory:
 
 ```python
-# 在代码中添加断点
-import ipdb; ipdb.set_trace()
-
-# 或使用 debug 日志
-import structlog
-logger = structlog.get_logger()
-logger.debug("agent_output", line=line, parsed=event)
+# tests/test_feature.py
+def test_my_feature():
+    result = my_function()
+    assert result == expected
 ```
 
-### 3. WebSocket 调试
+### Running Tests
 
 ```bash
-# 使用 wscat 测试 WebSocket
-npx wscat -c ws://localhost:8080/ws
+# Run all tests
+pytest
 
-# 发送消息
-> {"type": "subscribe", "session_id": "test"}
+# Run with coverage
+pytest --cov=memnexus --cov-report=html
+
+# Run specific marker
+pytest -m "not slow"
 ```
 
-## 发布流程
+## Building and Publishing
 
-1. 更新版本号
-   ```bash
-   # pyproject.toml
-   version = "0.2.0"
-   ```
-
-2. 更新 CHANGELOG.md
-
-3. 创建 Git Tag
-   ```bash
-   git tag v0.2.0
-   git push origin v0.2.0
-   ```
-
-4. 构建发布
-   ```bash
-   uv build
-   ```
-
-5. 发布到 PyPI
-   ```bash
-   uv publish
-   ```
-
-## 常见问题
-
-### Q: 如何重置数据？
+### Build Package
 
 ```bash
-rm -rf ~/.memnexus
-# 或
-memnexus reset --hard
+python -m build
 ```
 
-### Q: 如何连接远程数据库？
+### Check Package
 
 ```bash
-export MEMNEXUS_DATABASE_URL="postgresql+asyncpg://user:pass@host:5432/db"
-memnexus server
+twine check dist/*
 ```
 
-### Q: 如何添加自定义 CLI Agent？
+### Upload to PyPI
 
-参考上面"添加新的 Agent 支持"部分。
+```bash
+twine upload dist/*
+```
 
-## 贡献指南
+## Documentation
 
-1. Fork 仓库
-2. 创建分支 (`git checkout -b feature/xxx`)
-3. 提交更改 (`git commit -am 'Add xxx'`)
-4. 推送分支 (`git push origin feature/xxx`)
-5. 创建 Pull Request
+- Update `README.md` for user-facing changes
+- Update `CHANGELOG.md` with your changes
+- Update relevant docs in `docs/` directory
+- Add docstrings to new functions and classes
 
-## 参考资源
+## Commit Messages
 
-- [FastAPI 文档](https://fastapi.tiangolo.com/)
-- [Pydantic 文档](https://docs.pydantic.dev/)
-- [LanceDB 文档](https://lancedb.github.io/lancedb/)
-- [LlamaIndex 文档](https://docs.llamaindex.ai/)
+Follow conventional commits:
+
+```
+feat: add new feature
+fix: fix a bug
+docs: update documentation
+refactor: refactor code
+test: add tests
+chore: maintenance tasks
+```
+
+## Getting Help
+
+- GitHub Issues: https://github.com/Leeelics/MemNexus/issues
+- Discussions: https://github.com/Leeelics/MemNexus/discussions
