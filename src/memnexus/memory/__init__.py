@@ -1,6 +1,20 @@
-"""Memory and RAG system for MemNexus."""
+"""Memory and RAG system for MemNexus.
 
-# Legacy memory system (backward compatible)
+This module provides core memory functionality for AI programming tools.
+
+Stable Components (v1.0):
+- MemoryStore: Vector storage using LanceDB
+- MemoryEntry: Memory entry dataclass
+- RAGPipeline: Basic RAG functionality
+- Document/DocumentChunker: Document processing
+
+Experimental Components (frozen in v1.0):
+- AdvancedRAG: See memory/advanced_rag.py
+- HierarchicalMemory: See memory/layers/
+- AdaptiveRetriever: See memory/retrieval/
+"""
+
+# Core memory system (stable)
 from memnexus.memory.store import MemoryStore, MemoryEntry
 from memnexus.memory.context import ContextManager
 from memnexus.memory.rag import RAGPipeline, Document, DocumentChunker
@@ -11,34 +25,18 @@ from memnexus.memory.sync import (
     SyncEvent,
 )
 
-# New advanced memory system (v2.0)
-from memnexus.memory.core import (
-    MemoryLayer,
+# Core types
+from memnexus.memory.core.types import (
     MemoryType,
     RetrievalResult,
-    RetrievalStrategy,
-    UncertaintyEstimate,
-)
-from memnexus.memory.layers import (
-    HierarchicalMemoryManager,
-    WorkingMemoryLayer,
-    ShortTermMemoryLayer,
-    LongTermMemoryLayer,
-    LLMCompressor,
-)
-from memnexus.memory.retrieval import (
-    AdaptiveRetriever,
-    HybridRetriever,
-)
-from memnexus.memory.advanced_rag import (
-    AdvancedRAG,
-    RAGConfig,
-    RAGQueryResult,
-    RAGPipelineAdapter,
 )
 
+# Git and Code integration (Week 2-3)
+from memnexus.memory.git import GitMemoryExtractor, GitCommit
+from memnexus.memory.code import CodeMemoryExtractor, CodeSymbol
+
 __all__ = [
-    # Legacy exports (backward compatible)
+    # Core memory (stable)
     "MemoryStore",
     "MemoryEntry",
     "ContextManager",
@@ -49,24 +47,13 @@ __all__ = [
     "MemorySyncBus",
     "AgentMemoryBridge",
     "SyncEvent",
-    # New core types
-    "MemoryLayer",
+    # Core types
     "MemoryType",
     "RetrievalResult",
-    "RetrievalStrategy",
-    "UncertaintyEstimate",
-    # New hierarchical memory
-    "HierarchicalMemoryManager",
-    "WorkingMemoryLayer",
-    "ShortTermMemoryLayer",
-    "LongTermMemoryLayer",
-    "LLMCompressor",
-    # New retrieval
-    "AdaptiveRetriever",
-    "HybridRetriever",
-    # New RAG
-    "AdvancedRAG",
-    "RAGConfig",
-    "RAGQueryResult",
-    "RAGPipelineAdapter",
+    # Git integration (Week 2)
+    "GitMemoryExtractor",
+    "GitCommit",
+    # Code integration (Week 3)
+    "CodeMemoryExtractor",
+    "CodeSymbol",
 ]

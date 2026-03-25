@@ -1,12 +1,15 @@
 """
 Advanced RAG System for MemNexus.
 
-Integrates:
-- Adaptive retrieval (SEAKR-inspired)
-- Hierarchical memory (MELODI-inspired)
-- Hybrid search (vector + keyword)
-
-This is the next-generation replacement for the basic RAGPipeline.
+.. warning::
+    EXPERIMENTAL - Frozen in v1.0
+    This module contains experimental features that are not actively maintained.
+    For stable functionality, use RAGPipeline instead.
+    
+    Features in this file:
+    - Adaptive retrieval (SEAKR-inspired)
+    - Hierarchical memory (MELODI-inspired)
+    - Hybrid search (vector + keyword)
 """
 
 from dataclasses import dataclass, field
