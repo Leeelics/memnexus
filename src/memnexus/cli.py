@@ -23,7 +23,7 @@ from memnexus.core.session import (
 
 app = typer.Typer(
     name="memnexus",
-    help="MemNexus - Multi-Agent Collaboration Orchestration System",
+    help="MemNexus - Code Memory for AI Programming Tools",
     no_args_is_help=True,
 )
 console = Console()
@@ -43,6 +43,143 @@ def version():
         f"Version: {settings.APP_VERSION}\n"
         f"Data directory: {settings.DATA_DIR}",
         title="About",
+        border_style="cyan",
+    ))
+
+
+@app.command()
+def init(
+    path: Optional[str] = typer.Option(".", "--path", "-p", help="Project path"),
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing config"),
+):
+    """Initialize MemNexus for a project.
+    
+    Creates .memnexus/ directory with configuration and database.
+    """
+    project_path = Path(path).resolve()
+    memnexus_dir = project_path / ".memnexus"
+    
+    # Check if already initialized
+    if memnexus_dir.exists() and not force:
+        console.print(Panel.fit(
+            f"Project already initialized at:\n"
+            f"[yellow]{memnexus_dir}[/yellow]\n\n"
+            f"Use [bold]--force[/bold] to reinitialize.",
+            title="Already Initialized",
+            border_style="yellow",
+        ))
+        raise typer.Exit(0)
+    
+    # Create directory structure
+    try:
+        memnexus_dir.mkdir(exist_ok=True)
+        (memnexus_dir / "logs").mkdir(exist_ok=True)
+        
+        # Create config file
+        config_file = memnexus_dir / "config.yaml"
+        config_content = f'''version: "1.0"
+project:
+  name: "{project_path.name}"
+  root: "{project_path}"
+  initialized_at: "{__import__('datetime').datetime.now().isoformat()}"
+
+memory:
+  backend: "lancedb"
+  path: ".memnexus/memory.lance"
+
+git:
+  enabled: true
+  max_history: 1000
+
+code:
+  languages: ["python", "javascript", "typescript", "rust", "go"]
+  exclude_patterns:
+    - "*.pyc"
+    - "__pycache__/"
+    - "node_modules/"
+    - ".git/"
+    - ".venv/"
+    - ".memnexus/"
+'''
+        config_file.write_text(config_content)
+        
+        # Check for git
+        git_dir = project_path / ".git"
+        git_status = "[green]✓ Detected[/green]" if git_dir.exists() else "[yellow]✗ Not found[/yellow]"
+        
+        console.print(Panel.fit(
+            f"[green]✓[/green] Created .memnexus/ directory\n"
+            f"[green]✓[/green] Generated config.yaml\n"
+            f"[green]✓[/green] Initialized logs directory\n"
+            f"{git_status} Git repository\n\n"
+            f"[bold]Next steps:[/bold]\n"
+            f"  1. Run [cyan]memnexus status[/cyan] to check project status\n"
+            f"  2. Run [cyan]memnexus server[/cyan] to start the API server",
+            title="Initialized Successfully",
+            border_style="green",
+        ))
+        
+    except Exception as e:
+        console.print(Panel.fit(
+            f"Failed to initialize project:\n"
+            f"[red]{e}[/red]",
+            title="Error",
+            border_style="red",
+        ))
+        raise typer.Exit(1)
+
+
+@app.command()
+def status(
+    path: Optional[str] = typer.Option(".", "--path", "-p", help="Project path"),
+):
+    """Show project status."""
+    project_path = Path(path).resolve()
+    memnexus_dir = project_path / ".memnexus"
+    config_file = memnexus_dir / "config.yaml"
+    
+    # Check if initialized
+    if not memnexus_dir.exists():
+        console.print(Panel.fit(
+            f"Project not initialized.\n\n"
+            f"Run [cyan]memnexus init[/cyan] to initialize.",
+            title="Not Initialized",
+            border_style="yellow",
+        ))
+        raise typer.Exit(0)
+    
+    # Gather status info
+    git_dir = project_path / ".git"
+    git_status = "[green]✓[/green] Yes" if git_dir.exists() else "[yellow]✗[/yellow] No"
+    
+    # Try to get git stats
+    git_commits = "N/A"
+    if git_dir.exists():
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["git", "-C", str(project_path), "rev-list", "--count", "HEAD"],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode == 0:
+                git_commits = result.stdout.strip()
+        except Exception:
+            pass
+    
+    # Check memory database
+    memory_db = memnexus_dir / "memory.lance"
+    memory_status = "[green]✓[/green] Initialized" if memory_db.exists() else "[yellow]○[/yellow] Not created"
+    
+    console.print(Panel.fit(
+        f"[bold]Project:[/bold] {project_path.name}\n"
+        f"[bold]Path:[/bold] {project_path}\n"
+        f"[bold]Git:[/bold] {git_status} ({git_commits} commits)\n"
+        f"[bold]Memory DB:[/bold] {memory_status}\n\n"
+        f"[bold]Commands:[/bold]\n"
+        f"  [cyan]memnexus server[/cyan] - Start API server\n"
+        f"  [cyan]memnexus init --force[/cyan] - Reinitialize",
+        title="Project Status",
         border_style="cyan",
     ))
 
