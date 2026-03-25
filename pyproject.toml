@@ -58,6 +58,9 @@ dependencies = [
     "cryptography>=44.0.0",
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.0",
+    
+    # Git integration (Week 2)
+    "gitpython>=3.1.0",
 ]
 
 [project.optional-dependencies]
@@ -149,9 +152,9 @@ addopts = [
     "-v",
     "--tb=short",
     "--strict-markers",
-    "--cov=memnexus",
-    "--cov-report=term-missing",
-    "--cov-report=html:coverage_html",
+    # "--cov=memnexus",
+    # "--cov-report=term-missing",
+    # "--cov-report=html:coverage_html",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",

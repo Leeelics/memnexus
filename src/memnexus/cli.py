@@ -115,9 +115,9 @@ code:
             f"[green]✓[/green] Initialized logs directory\n"
             f"{git_status} Git repository\n\n"
             f"[bold]Next steps:[/bold]\n"
-            f"  1. Run [cyan]memnexus index[/cyan] to index your codebase\n"
-            f"  2. Run [cyan]memnexus search "your query"[/cyan] to search\n"
-            f"  3. Run [cyan]memnexus server[/cyan] to start API server",
+            f'  1. Run [cyan]memnexus index[/cyan] to index your codebase\n'
+            f'  2. Run [cyan]memnexus search "your query"[/cyan] to search\n'
+            f'  3. Run [cyan]memnexus server[/cyan] to start API server',
             title="Initialized Successfully",
             border_style="green",
         ))
@@ -168,9 +168,9 @@ def status(
             f"[bold]Code symbols indexed:[/bold] {stats.get('code_symbols_indexed', 0)}\n"
             f"[bold]Total memories:[/bold] {stats.get('total_memories', 0)}\n\n"
             f"[bold]Commands:[/bold]\n"
-            f"  [cyan]memnexus index[/cyan] - Index your codebase\n"
-            f"  [cyan]memnexus search "query"[/cyan] - Search memories\n"
-            f"  [cyan]memnexus server[/cyan] - Start API server",
+            f'  [cyan]memnexus index[/cyan] - Index your codebase\n'
+            f'  [cyan]memnexus search "query"[/cyan] - Search memories\n'
+            f'  [cyan]memnexus server[/cyan] - Start API server',
             title="Project Status",
             border_style="cyan",
         ))
@@ -183,8 +183,8 @@ def status(
             f"[bold]Status:[/bold] Initialized (memory not loaded)\n\n"
             f"[yellow]Note:[/yellow] {e}\n\n"
             f"[bold]Commands:[/bold]\n"
-            f"  [cyan]memnexus index[/cyan] - Index your codebase\n"
-            f"  [cyan]memnexus server[/cyan] - Start API server",
+            f'  [cyan]memnexus index[/cyan] - Index your codebase\n'
+            f'  [cyan]memnexus server[/cyan] - Start API server',
             title="Project Status",
             border_style="cyan",
         ))
@@ -220,8 +220,14 @@ def index(
             
             if git:
                 console.print("Indexing Git history...")
-                count = await memory.index_git_history(limit=limit)
-                console.print(f"[green]✓[/green] Indexed {count} commits")
+                result = await memory.index_git_history(limit=limit)
+                indexed = result.get('commits_indexed', 0)
+                total = result.get('total_commits', 0)
+                console.print(f"[green]✓[/green] Indexed {indexed} commits (from {total} total)")
+                
+                errors = result.get('errors', [])
+                if errors:
+                    console.print(f"[yellow]⚠[/yellow] {len(errors)} errors during indexing")
             
             if code:
                 console.print("Indexing codebase...")
@@ -271,27 +277,51 @@ def search(
             memory = await CodeMemory.init(project_path)
             
             if git_only:
+                from memnexus.code_memory import GitSearchResult
                 results = await memory.query_git_history(query, limit=limit)
+                
+                if not results:
+                    console.print("[yellow]No Git history results found.[/yellow]")
+                    console.print("Try running: [cyan]memnexus index --git[/cyan]")
+                    return
+                
+                # Display Git results in a special format
+                console.print(f"\n[bold]Git History Results:[/bold] '{query}'\n")
+                for r in results:
+                    date_str = r.date.strftime("%Y-%m-%d %H:%M")
+                    files_str = ", ".join(r.files_changed[:3])
+                    if len(r.files_changed) > 3:
+                        files_str += f" (+{len(r.files_changed) - 3} more)"
+                    
+                    console.print(Panel(
+                        f"[bold cyan]{r.commit_hash}[/bold cyan] "
+                        f"[green]{date_str}[/green] "
+                        f"[yellow]{r.author.split('<')[0].strip()}[/yellow]\n\n"
+                        f"{r.message}\n\n"
+                        f"[dim]Files: {files_str}[/dim]",
+                        border_style="blue",
+                    ))
             else:
                 results = await memory.search(query, limit=limit)
+                
+                if not results:
+                    console.print("[yellow]No results found.[/yellow]")
+                    console.print("Try running: [cyan]memnexus index[/cyan]")
+                    return
+                
+                # Display general results
+                table = Table(title=f"Search Results: '{query}'")
+                table.add_column("Source", style="cyan")
+                table.add_column("Content", style="white")
+                table.add_column("Score", style="green", justify="right")
+                
+                for r in results:
+                    content = r.content[:100] + "..." if len(r.content) > 100 else r.content
+                    content = content.replace("\n", " ")
+                    table.add_row(r.source, content, f"{r.score:.3f}")
+                
+                console.print(table)
             
-            if not results:
-                console.print("[yellow]No results found.[/yellow]")
-                console.print("Try running: [cyan]memnexus index[/cyan]")
-                return
-            
-            # Display results
-            table = Table(title=f"Search Results: '{query}'")
-            table.add_column("Source", style="cyan")
-            table.add_column("Content", style="white")
-            table.add_column("Score", style="green", justify="right")
-            
-            for r in results:
-                content = r.content[:100] + "..." if len(r.content) > 100 else r.content
-                content = content.replace("\n", " ")
-                table.add_row(r.source, content, f"{r.score:.3f}")
-            
-            console.print(table)
             console.print(f"\n[dim]Found {len(results)} results[/dim]")
             
         except Exception as e:

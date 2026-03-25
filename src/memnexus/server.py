@@ -16,7 +16,7 @@ from typing import AsyncIterator, Dict, List, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from memnexus.code_memory import CodeMemory, SearchResult
+from memnexus.code_memory import CodeMemory, SearchResult, GitSearchResult
 
 # Global state
 _code_memory: Optional[CodeMemory] = None
@@ -163,8 +163,13 @@ async def index_git(limit: int = 1000) -> Dict:
     if not _code_memory:
         raise HTTPException(status_code=503, detail="CodeMemory not initialized")
     
-    count = await _code_memory.index_git_history(limit=limit)
-    return {"indexed": count, "type": "git_commits"}
+    result = await _code_memory.index_git_history(limit=limit)
+    return {
+        "indexed": result.get("commits_indexed", 0),
+        "total": result.get("total_commits", 0),
+        "type": "git_commits",
+        "errors": result.get("errors", []),
+    }
 
 
 @app.get("/api/v1/git/search")
@@ -182,7 +187,7 @@ async def search_git(query: str, limit: int = 5) -> List[Dict]:
         raise HTTPException(status_code=503, detail="CodeMemory not initialized")
     
     results = await _code_memory.query_git_history(query, limit=limit)
-    return [_result_to_dict(r) for r in results]
+    return [_git_result_to_dict(r) for r in results]
 
 
 # ==================== Code API (Week 3) ====================
@@ -230,6 +235,19 @@ def _result_to_dict(result: SearchResult) -> Dict:
         "source": result.source,
         "score": result.score,
         "metadata": result.metadata,
+    }
+
+
+def _git_result_to_dict(result: GitSearchResult) -> Dict:
+    """Convert GitSearchResult to dict."""
+    return {
+        "commit_hash": result.commit_hash,
+        "message": result.message,
+        "author": result.author,
+        "date": result.date.isoformat(),
+        "files_changed": result.files_changed,
+        "relevance_score": result.relevance_score,
+        "diff_summary": result.diff_summary,
     }
 
 
