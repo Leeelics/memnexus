@@ -1,26 +1,30 @@
 # Installation Guide
 
+Detailed installation instructions for MemNexus.
+
+For a quick start, see [README.md](../README.md) or [Getting Started Guide](docs/GETTING_STARTED.md).
+
 ## Requirements
 
 - Python 3.12 or higher
 - Git (for Git history indexing)
 - 500MB+ free disk space (for vector database)
 
-## Quick Install
+## Install Methods
 
-### Using pip
+### Option 1: pip (Recommended)
 
 ```bash
 pip install memnexus
 ```
 
-### Using uv (recommended)
+### Option 2: uv
 
 ```bash
 uv tool install memnexus
 ```
 
-### Development Install
+### Option 3: Development Install
 
 ```bash
 git clone https://github.com/Leeelics/MemNexus.git
@@ -32,60 +36,6 @@ pip install -e ".[dev]"
 
 ```bash
 memnexus --version
-# Should output: memnexus, version 0.2.0
-```
-
-## First Time Setup
-
-### 1. Initialize a Project
-
-```bash
-cd your-project-directory
-memnexus init
-```
-
-This creates a `.memnexus/` directory with:
-- `config.yaml` - Project configuration
-- `memory.lance` - Vector database (created on first index)
-
-### 2. Index Your Project
-
-```bash
-# Index both Git history and code
-memnexus index --git --code
-
-# Or index separately
-memnexus index --git        # Only Git history
-memnexus index --code       # Only code
-```
-
-### 3. Verify Setup
-
-```bash
-memnexus status
-```
-
-Should show:
-- Project path
-- Git repository status
-- Number of indexed commits and symbols
-
-## Kimi CLI Plugin Setup
-
-If you're using Kimi CLI 1.25.0+, the MemNexus plugin is automatically available after installation.
-
-### Verify Plugin
-
-```bash
-kimi plugin list
-# Should show: memnexus v0.2.0 (installed)
-```
-
-### Use in Kimi CLI
-
-```
-/memory status
-/memory search "your query"
 ```
 
 ## Troubleshooting
@@ -144,6 +94,6 @@ rm -rf .memnexus/
 
 ## Next Steps
 
-- Read the [Quick Start Guide](docs/QUICKSTART.md)
-- Learn about [CLI Commands](docs/CLI.md)
-- Explore the [API Reference](docs/API.md)
+- [Getting Started Guide](docs/GETTING_STARTED.md) - Complete tutorial
+- [CLI Reference](docs/CLI.md) - Command reference
+- [API Documentation](docs/API.md) - HTTP API docs

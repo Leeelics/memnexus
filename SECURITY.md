@@ -4,7 +4,7 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
+| 0.2.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
@@ -13,7 +13,7 @@ If you discover a security vulnerability in MemNexus, please report it responsib
 ### How to Report
 
 1. **Do not** open a public issue
-2. Email security concerns to: [your-email@example.com]
+2. Email security concerns to: leeelics@gmail.com
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce
@@ -96,7 +96,7 @@ Security updates will be:
 
 We thank the following people for reporting security issues:
 
-- [Your name] - [Issue description]
+- None yet
 
 ---
 
