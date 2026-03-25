@@ -193,37 +193,90 @@ async def search_git(query: str, limit: int = 5) -> List[Dict]:
 # ==================== Code API (Week 3) ====================
 
 @app.post("/api/v1/code/index")
-async def index_code(languages: Optional[List[str]] = None) -> Dict:
+async def index_code(
+    languages: Optional[List[str]] = None,
+    file_patterns: Optional[List[str]] = None
+) -> Dict:
     """Index codebase.
     
     Args:
-        languages: List of languages to index (default: all)
+        languages: List of languages to index (default: python)
+        file_patterns: File patterns to include
         
     Returns:
-        Number of symbols indexed
+        Indexing statistics
         
-    Note:
-        Week 3 implementation - currently returns 0
+    Example:
+        POST /api/v1/code/index
+        {"languages": ["python"], "file_patterns": ["*.py"]}
     """
     if not _code_memory:
         raise HTTPException(status_code=503, detail="CodeMemory not initialized")
     
-    count = await _code_memory.index_codebase(languages)
-    return {"indexed": count, "type": "code_symbols"}
+    result = await _code_memory.index_codebase(
+        languages=languages,
+        file_patterns=file_patterns
+    )
+    return {
+        "indexed": result.get("symbols_indexed", 0),
+        "files_processed": result.get("files_processed", 0),
+        "type": "code_symbols",
+        "languages": result.get("languages", []),
+        "errors": result.get("errors", []),
+    }
 
 
 @app.get("/api/v1/code/search")
-async def search_code(query: str, language: Optional[str] = None) -> List[Dict]:
-    """Search code.
+async def search_code(
+    query: str, 
+    language: Optional[str] = None,
+    symbol_type: Optional[str] = None,
+    limit: int = 5
+) -> List[Dict]:
+    """Search code symbols.
     
-    Note:
-        Week 3 implementation - currently returns empty list
+    Args:
+        query: Search query
+        language: Filter by language
+        symbol_type: Filter by type (function, class, method)
+        limit: Maximum results
+        
+    Example:
+        GET /api/v1/code/search?query=authenticate&language=python&type=function
     """
     if not _code_memory:
         raise HTTPException(status_code=503, detail="CodeMemory not initialized")
     
-    results = await _code_memory.search_code(query, language)
+    results = await _code_memory.search_code(
+        query, 
+        language=language,
+        symbol_type=symbol_type,
+        limit=limit
+    )
     return [_result_to_dict(r) for r in results]
+
+
+@app.get("/api/v1/code/symbol/{name}")
+async def find_symbol(name: str) -> Dict:
+    """Find a specific symbol by name.
+    
+    Args:
+        name: Symbol name (e.g., "authenticate_user")
+        
+    Returns:
+        Symbol information if found
+        
+    Example:
+        GET /api/v1/code/symbol/authenticate_user
+    """
+    if not _code_memory:
+        raise HTTPException(status_code=503, detail="CodeMemory not initialized")
+    
+    result = await _code_memory.find_symbol(name)
+    if not result:
+        raise HTTPException(status_code=404, detail=f"Symbol '{name}' not found")
+    
+    return _result_to_dict(result)
 
 
 # ==================== Helpers ====================

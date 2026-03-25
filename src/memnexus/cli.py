@@ -194,22 +194,25 @@ def status(
 def index(
     path: Optional[str] = typer.Option(".", "--path", "-p", help="Project path"),
     git: bool = typer.Option(True, "--git/--no-git", help="Index Git history"),
-    code: bool = typer.Option(False, "--code/--no-code", help="Index codebase (Week 3)"),
+    code: bool = typer.Option(False, "--code/--no-code", help="Index codebase"),
     limit: int = typer.Option(1000, "--limit", "-l", help="Max Git commits to index"),
+    language: Optional[str] = typer.Option(None, "--lang", help="Language to index (python, javascript, typescript)"),
 ):
     """Index project into memory.
     
     Examples:
         memnexus index              # Index Git history
         memnexus index --git        # Same as above
-        memnexus index --code       # Also index code (Week 3)
+        memnexus index --code       # Index code (Python by default)
+        memnexus index --code --lang python
+        memnexus index --git --code  # Index both
     """
     project_path = _get_project_path(path)
     
     console.print(Panel.fit(
         f"Indexing project: [bold]{project_path.name}[/bold]\n"
         f"Git: {'[green]Yes[/green]' if git else '[yellow]No[/yellow]'}\n"
-        f"Code: {'[green]Yes[/green]' if code else '[yellow]No[/yellow]'} (Week 3)",
+        f"Code: {'[green]Yes[/green]' if code else '[yellow]No[/yellow]'}",
         title="Indexing",
         border_style="blue",
     ))
@@ -231,10 +234,24 @@ def index(
             
             if code:
                 console.print("Indexing codebase...")
-                count = await memory.index_codebase()
-                console.print(f"[green]✓[/green] Indexed {count} symbols")
-                if count == 0:
-                    console.print("[yellow]Note:[/yellow] Code indexing is Week 3 feature")
+                languages = [language] if language else None
+                
+                def progress(current, total, file):
+                    if current % 10 == 0 or current == total:
+                        console.print(f"  [{current}/{total}] {file}")
+                
+                result = await memory.index_codebase(
+                    languages=languages,
+                    progress_callback=progress
+                )
+                
+                indexed = result.get('symbols_indexed', 0)
+                files = result.get('files_processed', 0)
+                console.print(f"[green]✓[/green] Indexed {indexed} symbols from {files} files")
+                
+                errors = result.get('errors', [])
+                if errors:
+                    console.print(f"[yellow]⚠[/yellow] {len(errors)} errors during indexing")
             
             stats = memory.get_stats()
             console.print(Panel.fit(
@@ -262,6 +279,8 @@ def search(
     path: Optional[str] = typer.Option(".", "--path", "-p", help="Project path"),
     limit: int = typer.Option(5, "--limit", "-n", help="Max results"),
     git_only: bool = typer.Option(False, "--git", help="Search Git history only"),
+    code_only: bool = typer.Option(False, "--code", help="Search code only"),
+    symbol_type: Optional[str] = typer.Option(None, "--type", help="Filter by symbol type (function, class, method)"),
 ):
     """Search project memory.
     
@@ -269,6 +288,7 @@ def search(
         memnexus search "login authentication"
         memnexus search "auth changes" --git
         memnexus search "user model" --limit 10
+        memnexus search "def authenticate" --code --type function
     """
     project_path = _get_project_path(path)
     
@@ -301,6 +321,48 @@ def search(
                         f"[dim]Files: {files_str}[/dim]",
                         border_style="blue",
                     ))
+            
+            elif code_only:
+                results = await memory.search_code(
+                    query, 
+                    limit=limit,
+                    symbol_type=symbol_type
+                )
+                
+                if not results:
+                    console.print("[yellow]No code results found.[/yellow]")
+                    console.print("Try running: [cyan]memnexus index --code[/cyan]")
+                    return
+                
+                # Display code results
+                console.print(f"\n[bold]Code Search Results:[/bold] '{query}'\n")
+                for r in results:
+                    meta = r.metadata or {}
+                    symbol_name = meta.get('symbol_name', 'Unknown')
+                    symbol_type = meta.get('symbol_type', 'unknown')
+                    file_path = meta.get('file_path', 'unknown')
+                    line = meta.get('start_line', 0)
+                    
+                    # Get signature if available
+                    signature = meta.get('signature', '')
+                    docstring = meta.get('docstring', '')
+                    
+                    content_parts = []
+                    if signature:
+                        content_parts.append(f"[cyan]{signature}[/cyan]")
+                    if docstring:
+                        doc_preview = docstring[:100] + "..." if len(docstring) > 100 else docstring
+                        content_parts.append(f"[dim]{doc_preview}[/dim]")
+                    
+                    content = "\n".join(content_parts) if content_parts else r.content[:200]
+                    
+                    console.print(Panel(
+                        f"[bold]{symbol_name}[/bold] [yellow]({symbol_type})[/yellow]\n"
+                        f"[dim]{file_path}:{line}[/dim]\n\n"
+                        f"{content}",
+                        border_style="green",
+                    ))
+            
             else:
                 results = await memory.search(query, limit=limit)
                 

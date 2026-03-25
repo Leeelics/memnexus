@@ -360,57 +360,224 @@ class CodeMemory:
     
     # ==================== Code Integration (Week 3) ====================
     
-    async def index_codebase(self, languages: Optional[List[str]] = None) -> int:
+    async def index_codebase(
+        self, 
+        languages: Optional[List[str]] = None,
+        file_patterns: Optional[List[str]] = None,
+        exclude_patterns: Optional[List[str]] = None,
+        progress_callback: Optional[callable] = None
+    ) -> Dict[str, Any]:
         """Index codebase structure into memory.
         
         Args:
             languages: List of languages to index (default: all supported)
+            file_patterns: File patterns to include (default: based on languages)
+            exclude_patterns: Patterns to exclude
+            progress_callback: Optional callback(current, total, file)
             
         Returns:
-            Number of symbols indexed
+            Statistics about the indexing operation
             
         Example:
-            >>> count = await memory.index_codebase(["python", "typescript"])
-            >>> print(f"Indexed {count} symbols")
+            >>> result = await memory.index_codebase(["python"])
+            >>> print(f"Indexed {result['symbols_indexed']} symbols from {result['files_processed']} files")
         """
         if not self._initialized:
             raise RuntimeError("CodeMemory not initialized")
         
-        # TODO: Week 3 - Implement full code indexing
-        # For now, placeholder
+        if not self._code_extractor:
+            raise RuntimeError("Code extractor not available")
         
-        return 0
+        # Determine file patterns from languages
+        if file_patterns is None:
+            if languages is None:
+                file_patterns = ["*.py"]  # Default to Python
+            else:
+                pattern_map = {
+                    "python": "*.py",
+                    "javascript": "*.js",
+                    "typescript": "*.ts",
+                }
+                file_patterns = [pattern_map.get(lang, f"*.{lang}") for lang in languages]
+        
+        # Extract all chunks
+        chunks_by_file = self._code_extractor.extract_from_directory(
+            str(self.project_path),
+            patterns=file_patterns,
+            exclude_patterns=exclude_patterns
+        )
+        
+        indexed_count = 0
+        errors = []
+        files_processed = 0
+        
+        total_files = len(chunks_by_file)
+        
+        for file_path, chunks in chunks_by_file.items():
+            files_processed += 1
+            
+            if progress_callback:
+                progress_callback(files_processed, total_files, file_path)
+            
+            for chunk in chunks:
+                try:
+                    # Build rich content for embedding
+                    content_parts = [
+                        f"# {chunk.symbol.name if chunk.symbol else 'Code Chunk'}",
+                        f"# File: {chunk.symbol.file_path if chunk.symbol else 'unknown'}",
+                        f"# Type: {chunk.chunk_type}",
+                        "",
+                        chunk.context,
+                        "",
+                        chunk.content,
+                    ]
+                    
+                    content = "\n".join(content_parts)
+                    
+                    entry = MemoryEntry(
+                        content=content,
+                        source=f"code:{chunk.symbol.file_path if chunk.symbol else 'unknown'}",
+                        memory_type="code_symbol",
+                        metadata={
+                            "symbol_name": chunk.symbol.name if chunk.symbol else None,
+                            "symbol_type": chunk.symbol.symbol_type if chunk.symbol else chunk.chunk_type,
+                            "file_path": chunk.symbol.file_path if chunk.symbol else None,
+                            "start_line": chunk.symbol.start_line if chunk.symbol else None,
+                            "end_line": chunk.symbol.end_line if chunk.symbol else None,
+                            "language": chunk.language,
+                            "signature": chunk.symbol.signature if chunk.symbol else None,
+                            "docstring": chunk.symbol.docstring if chunk.symbol else None,
+                        }
+                    )
+                    
+                    await self._memory_store.add(entry)
+                    indexed_count += 1
+                    
+                except Exception as e:
+                    errors.append(f"Failed to index chunk from {file_path}: {e}")
+        
+        self._stats["code_symbols_indexed"] += indexed_count
+        
+        return {
+            "symbols_indexed": indexed_count,
+            "files_processed": files_processed,
+            "errors": errors,
+            "languages": languages or ["python"],
+        }
     
-    async def search_code(self, query: str, language: Optional[str] = None) -> List[SearchResult]:
+    async def search_code(
+        self, 
+        query: str, 
+        language: Optional[str] = None,
+        symbol_type: Optional[str] = None,
+        file_pattern: Optional[str] = None,
+        limit: int = 5
+    ) -> List[SearchResult]:
         """Search code symbols.
         
         Args:
             query: Search query (e.g., "login function")
-            language: Filter by language
+            language: Filter by language (e.g., "python")
+            symbol_type: Filter by type ("function", "class", "method")
+            file_pattern: Filter by file path pattern
+            limit: Maximum results
             
         Returns:
             List of matching code symbols
+            
+        Example:
+            >>> results = await memory.search_code("authenticate", symbol_type="function")
+            >>> for r in results:
+            ...     print(f"{r.metadata['symbol_name']}: {r.metadata['file_path']}")
         """
         if not self._initialized:
             raise RuntimeError("CodeMemory not initialized")
         
-        # TODO: Week 3 - Implement code search
-        return []
+        # Search in memory store
+        results = await self._memory_store.search(query, limit=limit * 2)
+        
+        code_results = []
+        for r in results:
+            if r.memory_type != "code_symbol":
+                continue
+            
+            metadata = r.metadata or {}
+            
+            # Apply filters
+            if language and metadata.get("language") != language:
+                continue
+            
+            if symbol_type and metadata.get("symbol_type") != symbol_type:
+                continue
+            
+            if file_pattern and file_pattern not in metadata.get("file_path", ""):
+                continue
+            
+            code_results.append(SearchResult(
+                content=r.content,
+                source=r.source,
+                score=0.9,  # TODO: Use actual score
+                metadata=metadata,
+            ))
+            
+            if len(code_results) >= limit:
+                break
+        
+        return code_results
     
-    async def find_references(self, symbol: str) -> List[SearchResult]:
-        """Find all references to a symbol.
+    async def find_symbol(self, name: str) -> Optional[SearchResult]:
+        """Find a specific symbol by name.
         
         Args:
-            symbol: Symbol name (e.g., "authenticate_user")
+            name: Symbol name (e.g., "authenticate_user" or "AuthController.login")
             
         Returns:
-            List of references
+            SearchResult if found, None otherwise
         """
         if not self._initialized:
             raise RuntimeError("CodeMemory not initialized")
         
-        # TODO: Week 3 - Implement reference search
-        return []
+        # Search for exact match
+        results = await self._memory_store.search(name, limit=10)
+        
+        for r in results:
+            if r.memory_type != "code_symbol":
+                continue
+            
+            metadata = r.metadata or {}
+            symbol_name = metadata.get("symbol_name", "")
+            
+            # Exact match or ends with name (for methods)
+            if symbol_name == name or symbol_name.endswith(f".{name}"):
+                return SearchResult(
+                    content=r.content,
+                    source=r.source,
+                    score=1.0,
+                    metadata=metadata,
+                )
+        
+        return None
+    
+    async def get_code_stats(self) -> Dict[str, Any]:
+        """Get codebase statistics.
+        
+        Returns:
+            Dictionary with code statistics
+        """
+        if not self._initialized:
+            raise RuntimeError("CodeMemory not initialized")
+        
+        if not self._code_extractor:
+            return {"error": "Code extractor not available"}
+        
+        # Get summary of project
+        summary = self._code_extractor.get_file_summary(str(self.project_path))
+        
+        return {
+            "project_path": str(self.project_path),
+            "symbols_indexed": self._stats["code_symbols_indexed"],
+            **summary,
+        }
     
     # ==================== General Memory ====================
     
