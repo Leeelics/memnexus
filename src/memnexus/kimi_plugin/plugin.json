@@ -1,0 +1,181 @@
+{
+  "name": "memnexus",
+  "version": "0.1.0",
+  "description": "MemNexus Code Memory - Persistent memory for AI coding sessions",
+  "tools": [
+    {
+      "name": "memory_search",
+      "description": "Search project memory for relevant context. Use this when you need to understand: 1) What was discussed in previous sessions, 2) Recent changes to a file/module, 3) Design decisions or architecture, 4) How something was implemented",
+      "command": [
+        "python3",
+        "-m",
+        "memnexus.scripts.kimi_plugin",
+        "search"
+      ],
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query describing what you're looking for (e.g., 'auth module implementation', 'recent changes to database', 'why use Redis')"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "all",
+              "git",
+              "code"
+            ],
+            "default": "all",
+            "description": "Source to search: 'git' for commit history, 'code' for code symbols, 'all' for everything"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 5,
+            "description": "Maximum number of results to return"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "memory_store",
+      "description": "Store important information to project memory. Use this to remember: 1) Key design decisions, 2) Important findings during debugging, 3) Architecture patterns, 4) Workarounds or hacks, 5) Session summaries",
+      "command": [
+        "python3",
+        "-m",
+        "memnexus.scripts.kimi_plugin",
+        "store"
+      ],
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "The content to store in memory. Be concise but include key details."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "decision",
+              "finding",
+              "pattern",
+              "workaround",
+              "summary",
+              "todo"
+            ],
+            "default": "finding",
+            "description": "Category of the memory for better organization"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Optional tags for filtering (e.g., ['auth', 'database', 'performance'])"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      }
+    },
+    {
+      "name": "memory_status",
+      "description": "Check MemNexus status for the current project. Shows: 1) Whether project is initialized, 2) Number of indexed commits, 3) Number of code symbols, 4) Last indexed time",
+      "command": [
+        "python3",
+        "-m",
+        "memnexus.scripts.kimi_plugin",
+        "status"
+      ],
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "memory_index",
+      "description": "Index project into memory. Use this when: 1) First time using MemNexus on a project, 2) After significant code changes, 3) When search returns no results",
+      "command": [
+        "python3",
+        "-m",
+        "memnexus.scripts.kimi_plugin",
+        "index"
+      ],
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "git": {
+            "type": "boolean",
+            "default": true,
+            "description": "Index Git commit history"
+          },
+          "code": {
+            "type": "boolean",
+            "default": true,
+            "description": "Index codebase (functions, classes)"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "find_symbol",
+      "description": "Find a specific code symbol (function, class, method) by name. Use this when: 1) Looking for a specific function implementation, 2) Finding where a class is defined, 3) Understanding a method's signature",
+      "command": [
+        "python3",
+        "-m",
+        "memnexus.scripts.kimi_plugin",
+        "find_symbol"
+      ],
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Symbol name to find (e.g., 'authenticate_user', 'AuthController', 'AuthController.login')"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "get_file_history",
+      "description": "Get Git history for a specific file. Use this when: 1) Understanding recent changes to a file, 2) Finding when a bug was introduced, 3) Seeing who modified a file and why",
+      "command": [
+        "python3",
+        "-m",
+        "memnexus.scripts.kimi_plugin",
+        "file_history"
+      ],
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path to the file (relative to project root, e.g., 'src/auth.py')"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 10,
+            "description": "Maximum number of commits to return"
+          }
+        },
+        "required": [
+          "file_path"
+        ]
+      }
+    }
+  ],
+  "runtime": {
+    "host": "kimi-code",
+    "host_version": "1.25.0"
+  }
+}

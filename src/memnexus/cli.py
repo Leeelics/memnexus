@@ -441,5 +441,87 @@ def session_list():
     console.print("Use: from memnexus import CodeMemory")
 
 
+@app.command()
+def install_plugin(
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing plugin"),
+):
+    """Install Kimi CLI plugin.
+    
+    Copies the MemNexus plugin files to ~/.kimi/plugins/memnexus/
+    After installation, you can use /memory commands in Kimi CLI.
+    """
+    import shutil
+    
+    # Source: plugin files bundled with the package
+    src_dir = Path(__file__).parent / "kimi_plugin"
+    
+    if not src_dir.exists():
+        console.print(Panel.fit(
+            "[bold red]Plugin files not found![/bold red]\n\n"
+            "The kimI_plugin directory is missing from the package.\n"
+            "Please install from source or report this issue.",
+            title="Installation Failed",
+            border_style="red",
+        ))
+        raise typer.Exit(1)
+    
+    # Destination: Kimi CLI plugins directory
+    kimi_dir = Path.home() / ".kimi" / "plugins"
+    dst_dir = kimi_dir / "memnexus"
+    
+    # Create parent directory if needed
+    kimi_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Check if already installed
+    if dst_dir.exists() and not force:
+        console.print(Panel.fit(
+            f"Plugin already installed at:\n"
+            f"[yellow]{dst_dir}[/yellow]\n\n"
+            f"Use [bold]--force[/bold] to reinstall.",
+            title="Already Installed",
+            border_style="yellow",
+        ))
+        raise typer.Exit(0)
+    
+    # Backup existing installation
+    if dst_dir.exists():
+        backup_dir = dst_dir.with_suffix(".backup")
+        if backup_dir.exists():
+            shutil.rmtree(backup_dir)
+        shutil.copytree(dst_dir, backup_dir)
+        shutil.rmtree(dst_dir)
+        console.print(f"[dim]Backed up existing plugin to {backup_dir}[/dim]")
+    
+    # Copy plugin files
+    try:
+        shutil.copytree(src_dir, dst_dir)
+        
+        console.print(Panel.fit(
+            f"[bold green]✅ MemNexus Kimi plugin installed![/bold green]\n\n"
+            f"Location: [cyan]{dst_dir}[/cyan]\n\n"
+            f"[bold]Available commands:[/bold]\n"
+            f"  /memory search <query>     - Search project memory\n"
+            f"  /memory store <content>    - Store important info\n"
+            f"  /memory status             - Check indexing status\n"
+            f"  /memory index              - Index project\n"
+            f"  /memory find <symbol>      - Find code symbol\n"
+            f"  /memory history <file>     - Get file history\n\n"
+            f"[dim]Next steps:[/dim]\n"
+            f"1. cd your-project\n"
+            f"2. memnexus init\n"
+            f"3. memnexus index --git --code\n"
+            f"4. Start Kimi CLI and use /memory commands",
+            title="Installation Complete",
+            border_style="green",
+        ))
+    except Exception as e:
+        console.print(Panel.fit(
+            f"[bold red]Installation failed:[/bold red]\n{str(e)}",
+            title="Error",
+            border_style="red",
+        ))
+        raise typer.Exit(1)
+
+
 if __name__ == "__main__":
     app()
