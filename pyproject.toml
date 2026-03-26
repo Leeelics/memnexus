@@ -1,6 +1,6 @@
 [project]
 name = "memnexus"
-version = "0.2.0"
+version = "0.2.1"
 description = "Code Memory for AI Programming Tools - Persistent memory for Kimi CLI, Claude Code, and other AI coding assistants"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -81,7 +81,6 @@ full = [
     "llama-index-vector-stores-lancedb>=0.3.0",
 ]
 
-[project.optional-dependencies]
 frontend = [
     "streamlit>=1.41.0",
     "plotly>=5.24.0",
