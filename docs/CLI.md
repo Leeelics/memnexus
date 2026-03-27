@@ -71,6 +71,25 @@ This creates:
 - `.memnexus/config.yaml` - Project configuration
 - `.memnexus/memory.lance` - Vector database (on first index)
 
+**Embedding Configuration:**
+
+The default config uses TF-IDF embedding (lightweight, no dependencies). For better quality, configure external API in `.memnexus/config.yaml`:
+
+```yaml
+# OpenAI (recommended)
+embedding:
+  method: "openai"
+  api_key: "sk-..."  # Or use env var: $OPENAI_API_KEY
+  model: "text-embedding-3-small"
+  dim: 1536
+
+# Or sentence-transformers (local, requires pip install sentence-transformers)
+embedding:
+  method: "sentence-transformers"
+  model: "all-MiniLM-L6-v2"
+  dim: 384
+```
+
 ### status
 
 Show project status.

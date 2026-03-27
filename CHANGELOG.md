@@ -18,14 +18,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New CLI flags: `--incremental/--full` and `--reset`
   - New CLI command: `memnexus reset --git/--code/--all`
 
+- **Lightweight TF-IDF Embedding** - Zero-dependency embedding (no more zero vectors!)
+  - Default: TF-IDF embedding (pure Python, no ML libraries)
+  - Optional: Hash embedder (even simpler)
+  - External API support: OpenAI, Cohere, etc.
+  - Local model support: sentence-transformers
+  - Configurable via `embedding.method` in config.yaml
+
 ### 🔧 Technical Details
 
 - Added `IndexStateManager` class for tracking index state
 - Added `FileIndexState` and `GitIndexState` dataclasses
+- Added `embedder.py` with multiple embedding strategies:
+  - `TfidfEmbedder`: Lightweight, keyword-based
+  - `HashEmbedder`: Ultra-lightweight feature hashing
+  - `ExternalApiEmbedder`: OpenAI API support
+  - `SentenceTransformersEmbedder`: Local neural models
 - Modified `index_git_history()` to support `incremental` parameter
 - Modified `index_codebase()` to support `incremental` parameter
 - Added `reset_index()` method to `CodeMemory` class
 - Updated `get_stats()` to include index state statistics
+- Updated config template with embedding configuration
 
 ## [0.2.2] - 2026-03-27
 

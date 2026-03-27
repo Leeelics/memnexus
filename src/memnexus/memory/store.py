@@ -11,6 +11,7 @@ import lancedb
 from lancedb.pydantic import LanceModel, Vector
 
 from memnexus.core.config import settings
+from memnexus.memory.embedder import TfidfEmbedder, get_embedder
 
 
 @dataclass
@@ -64,11 +65,13 @@ class MemorySchema(LanceModel):
 class MemoryStore:
     """Vector memory store using LanceDB.
     
-    Provides semantic search and storage for agent context:
-    - Code snippets
-    - Conversation history
-    - File contents
-    - Task results
+    Provides semantic search and storage for agent context.
+    
+    Embedding Options:
+        - tfidf (default): Lightweight, no dependencies, good for keyword matching
+        - hash: Ultra-lightweight feature hashing
+        - openai: Best quality via OpenAI API (requires api_key)
+        - sentence-transformers: Local neural model (requires sentence-transformers)
     
     Example:
         store = MemoryStore()
@@ -87,11 +90,28 @@ class MemoryStore:
         results = await store.search("REST API requirements", limit=5)
     """
     
-    def __init__(self, uri: Optional[str] = None):
+    def __init__(
+        self, 
+        uri: Optional[str] = None,
+        embedding_method: str = "tfidf",
+        embedding_dim: int = 384,
+        **embedder_kwargs
+    ):
+        """Initialize memory store.
+        
+        Args:
+            uri: LanceDB URI (default: from settings)
+            embedding_method: "tfidf", "hash", "openai", "sentence-transformers"
+            embedding_dim: Embedding dimension (default: 384)
+            **embedder_kwargs: Additional args for embedder (e.g., api_key for openai)
+        """
         self.uri = uri or settings.LANCEDB_URI
+        self.embedding_method = embedding_method
+        self.embedding_dim = embedding_dim
+        self._embedder_kwargs = embedder_kwargs
         self._db: Optional[lancedb.DBConnection] = None
         self._table: Optional[lancedb.table.Table] = None
-        self._embedding_func = None
+        self._embedder = None
     
     async def initialize(self) -> None:
         """Initialize the memory store."""
@@ -113,12 +133,17 @@ class MemoryStore:
                 schema=MemorySchema,
             )
         
-        # Initialize embedding function (sentence-transformers)
+        # Initialize embedder
         try:
-            from sentence_transformers import SentenceTransformer
-            self._embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-        except ImportError:
-            self._embedding_model = None
+            self._embedder = get_embedder(
+                method=self.embedding_method,
+                dim=self.embedding_dim,
+                **self._embedder_kwargs
+            )
+        except ImportError as e:
+            # Fall back to tfidf if requested method not available
+            print(f"Warning: {e}, falling back to tfidf")
+            self._embedder = TfidfEmbedder(dim=self.embedding_dim)
     
     async def add(self, entry: MemoryEntry) -> str:
         """Add a memory entry to the store.
@@ -133,14 +158,8 @@ class MemoryStore:
             raise RuntimeError("Memory store not initialized. Call initialize() first.")
         
         # Generate embedding if not provided
-        if entry.embedding is None and self._embedding_model is not None:
-            entry.embedding = self._embedding_model.encode(
-                entry.content
-            ).tolist()
-        
-        if entry.embedding is None:
-            # Fallback: zero vector
-            entry.embedding = [0.0] * 384
+        if entry.embedding is None and self._embedder is not None:
+            entry.embedding = self._embedder.embed(entry.content)
         
         # Create record
         record = {
@@ -181,10 +200,11 @@ class MemoryStore:
             raise RuntimeError("Memory store not initialized. Call initialize() first.")
         
         # Generate query embedding
-        if self._embedding_model is not None:
-            query_vector = self._embedding_model.encode(query).tolist()
+        if self._embedder is not None:
+            query_vector = self._embedder.embed(query)
         else:
-            query_vector = [0.0] * 384
+            # Fallback: zero vector (should not happen)
+            query_vector = [0.0] * self.embedding_dim
         
         # Build search
         search = self._table.search(query_vector).limit(limit)

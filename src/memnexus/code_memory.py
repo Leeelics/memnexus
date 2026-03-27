@@ -123,9 +123,24 @@ class CodeMemory:
                 f"Run: memnexus init"
             )
         
-        # Initialize memory store
+        # Get embedding configuration
+        embedding_config = self.config.get("embedding", {})
+        embedding_method = embedding_config.get("method", "tfidf")
+        embedding_dim = embedding_config.get("dim", 384)
+        
+        # Initialize memory store with embedding config
+        embedder_kwargs = {}
+        if embedding_method == "openai":
+            embedder_kwargs["api_key"] = embedding_config.get("api_key")
+            embedder_kwargs["model"] = embedding_config.get("model", "text-embedding-3-small")
+        elif embedding_method == "sentence-transformers":
+            embedder_kwargs["model"] = embedding_config.get("model", "all-MiniLM-L6-v2")
+        
         self._memory_store = MemoryStore(
-            uri=str(memnexus_dir / "memory.lance")
+            uri=str(memnexus_dir / "memory.lance"),
+            embedding_method=embedding_method,
+            embedding_dim=embedding_dim,
+            **embedder_kwargs
         )
         await self._memory_store.initialize()
         

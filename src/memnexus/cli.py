@@ -89,6 +89,16 @@ memory:
   backend: "lancedb"
   path: ".memnexus/memory.lance"
 
+# Embedding configuration
+# method: tfidf (default), hash, openai, sentence-transformers
+# For best results, use external API:
+#   method: openai
+#   api_key: $OPENAI_API_KEY
+#   model: text-embedding-3-small
+embedding:
+  method: "tfidf"
+  dim: 384
+
 git:
   enabled: true
   max_history: 1000
