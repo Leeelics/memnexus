@@ -12,7 +12,7 @@ Quick Start:
 For more information, see: https://github.com/Leeelics/MemNexus
 """
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 __author__ = "Leeelics"
 __license__ = "MIT"
 
@@ -21,6 +21,12 @@ try:
     from memnexus.code_memory import CodeMemory, SearchResult
 except ImportError:
     # Dependencies not installed
+    pass
+
+# Global memory (cross-project)
+try:
+    from memnexus.global_memory import GlobalMemory, GlobalSearchResult, ProjectInfo
+except ImportError:
     pass
 
 # Legacy exports (for backward compatibility)
@@ -35,6 +41,10 @@ __all__ = [
     # Main API
     "CodeMemory",
     "SearchResult",
+    # Global Memory
+    "GlobalMemory",
+    "GlobalSearchResult",
+    "ProjectInfo",
     # Legacy (backward compatibility)
     "MemoryStore",
     "MemoryEntry",

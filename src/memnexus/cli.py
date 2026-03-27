@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from memnexus import __version__
 from memnexus.code_memory import CodeMemory
+from memnexus.global_memory import GlobalMemory
 
 app = typer.Typer(
     name="memnexus",
@@ -501,6 +502,305 @@ def reset(
             raise typer.Exit(1)
     
     asyncio.run(do_reset())
+
+
+# ==================== Global Memory Commands ====================
+
+@app.command()
+def global_register(
+    name: str = typer.Argument(..., help="Project name (unique identifier)"),
+    path: Optional[str] = typer.Option(".", "--path", "-p", help="Project path"),
+    description: Optional[str] = typer.Option(None, "--desc", "-d", help="Project description"),
+    tags: Optional[str] = typer.Option(None, "--tags", "-t", help="Comma-separated tags"),
+    sync: bool = typer.Option(False, "--sync", "-s", help="Sync immediately after registration"),
+):
+    """Register a project with global memory.
+    
+    Examples:
+        memnexus global-register my-api              # Register current directory as "my-api"
+        memnexus global-register api --path ~/work/api --tags python,fastapi
+        memnexus global-register web --sync          # Register and sync immediately
+    """
+    project_path = _get_project_path(path)
+    
+    async def do_register():
+        try:
+            memory = await GlobalMemory.init()
+            
+            # Parse tags
+            tag_list = [t.strip() for t in tags.split(",")] if tags else []
+            
+            info = await memory.register_project(
+                name=name,
+                path=str(project_path),
+                description=description,
+                tags=tag_list,
+                sync=sync,
+            )
+            
+            sync_status = "\n[cyan]Syncing...[/cyan]" if sync else ""
+            
+            console.print(Panel.fit(
+                f"[green]✓[/green] Project registered successfully\n\n"
+                f"[bold]Name:[/bold] {info.name}\n"
+                f"[bold]Path:[/bold] {info.path}\n"
+                f"[bold]Description:[/bold] {info.description or 'N/A'}\n"
+                f"[bold]Tags:[/bold] {', '.join(info.tags) if info.tags else 'N/A'}\n"
+                f"[bold]Registered:[/bold] {info.registered_at[:19]}"
+                f"{sync_status}",
+                title="Global Memory - Project Registered",
+                border_style="green",
+            ))
+            
+            if sync:
+                # Show sync results
+                result = await memory.sync_project(name)
+                console.print(Panel.fit(
+                    f"[green]✓[/green] Synced {result.get('memories_added', 0)} memories\n"
+                    f"[dim]Project: {name}[/dim]",
+                    title="Sync Complete",
+                    border_style="blue",
+                ))
+                
+        except Exception as e:
+            console.print(Panel.fit(
+                f"Registration failed:\n[red]{e}[/red]",
+                title="Error",
+                border_style="red",
+            ))
+            raise typer.Exit(1)
+    
+    asyncio.run(do_register())
+
+
+@app.command()
+def global_list():
+    """List all registered projects in global memory.
+    
+    Example:
+        memnexus global-list
+    """
+    async def do_list():
+        try:
+            memory = await GlobalMemory.init()
+            projects = memory.list_projects()
+            
+            if not projects:
+                console.print(Panel.fit(
+                    "No projects registered yet.\n\n"
+                    "[bold]To register a project:[/bold]\n"
+                    "  memnexus global-register <name> --path <path>",
+                    title="Global Memory",
+                    border_style="yellow",
+                ))
+                return
+            
+            table = Table(title=f"Registered Projects ({len(projects)})")
+            table.add_column("Name", style="cyan")
+            table.add_column("Path", style="white")
+            table.add_column("Tags", style="green")
+            table.add_column("Last Synced", style="dim")
+            
+            for p in projects:
+                last_sync = p.last_synced[:19] if p.last_synced else "Never"
+                tags = ", ".join(p.tags) if p.tags else "-"
+                table.add_row(p.name, p.path, tags, last_sync)
+            
+            console.print(table)
+            
+            console.print(f"\n[dim]Global memory path: ~/.memnexus/global/[/dim]")
+            
+        except Exception as e:
+            console.print(Panel.fit(
+                f"Failed to list projects:\n[red]{e}[/red]",
+                title="Error",
+                border_style="red",
+            ))
+            raise typer.Exit(1)
+    
+    asyncio.run(do_list())
+
+
+@app.command()
+def global_sync(
+    project: Optional[str] = typer.Argument(None, help="Project name (default: all projects)"),
+    incremental: bool = typer.Option(True, "--incremental/--full", help="Incremental sync"),
+):
+    """Sync project(s) to global memory.
+    
+    Examples:
+        memnexus global-sync              # Sync all projects
+        memnexus global-sync my-api       # Sync specific project
+        memnexus global-sync --full       # Force full re-sync
+    """
+    async def do_sync():
+        try:
+            memory = await GlobalMemory.init()
+            
+            if project:
+                # Sync specific project
+                console.print(f"Syncing project: [cyan]{project}[/cyan]...")
+                result = await memory.sync_project(project, incremental=incremental)
+                
+                if "error" in result:
+                    console.print(Panel.fit(
+                        f"[red]✗[/red] {result['error']}",
+                        title="Sync Failed",
+                        border_style="red",
+                    ))
+                    raise typer.Exit(1)
+                
+                console.print(Panel.fit(
+                    f"[green]✓[/green] Synced {result.get('memories_added', 0)} memories\n"
+                    f"Project: [cyan]{project}[/cyan]",
+                    title="Sync Complete",
+                    border_style="green",
+                ))
+            else:
+                # Sync all projects
+                projects = memory.list_projects()
+                if not projects:
+                    console.print("[yellow]No projects registered.[/yellow]")
+                    return
+                
+                console.print(f"Syncing {len(projects)} projects...\n")
+                results = await memory.sync_all(incremental=incremental)
+                
+                table = Table(title="Sync Results")
+                table.add_column("Project", style="cyan")
+                table.add_column("Added", style="green", justify="right")
+                table.add_column("Status", style="white")
+                
+                total_added = 0
+                for r in results:
+                    name = r.get("project", "unknown")
+                    added = r.get("memories_added", 0)
+                    error = r.get("error")
+                    
+                    if error:
+                        status = f"[red]Error: {error}[/red]"
+                    else:
+                        status = "[green]✓[/green]"
+                        total_added += added
+                    
+                    table.add_row(name, str(added), status)
+                
+                console.print(table)
+                console.print(f"\n[bold]Total memories added: {total_added}[/bold]")
+                
+        except Exception as e:
+            console.print(Panel.fit(
+                f"Sync failed:\n[red]{e}[/red]",
+                title="Error",
+                border_style="red",
+            ))
+            raise typer.Exit(1)
+    
+    asyncio.run(do_sync())
+
+
+@app.command()
+def global_search(
+    query: str = typer.Argument(..., help="Search query"),
+    project: Optional[str] = typer.Option(None, "--project", "-p", help="Filter by project"),
+    limit: int = typer.Option(10, "--limit", "-n", help="Maximum results"),
+):
+    """Search across all projects in global memory.
+    
+    Examples:
+        memnexus global-search "authentication"           # Search all projects
+        memnexus global-search "login" --project my-api   # Search specific project
+        memnexus global-search "JWT" --limit 20
+    """
+    async def do_search():
+        try:
+            memory = await GlobalMemory.init()
+            
+            console.print(f"Searching: [cyan]'{query}'[/cyan]...")
+            if project:
+                console.print(f"Project filter: [cyan]{project}[/cyan]")
+            
+            results = await memory.search(
+                query=query,
+                project=project,
+                limit=limit,
+            )
+            
+            if not results:
+                console.print("[yellow]No results found.[/yellow]")
+                console.print("\n[dim]Try:[/dim]")
+                console.print("  1. Register and sync projects: memnexus global-sync")
+                console.print("  2. Use different search terms")
+                return
+            
+            console.print(f"\n[bold]Found {len(results)} results:[/bold]\n")
+            
+            for r in results:
+                # Truncate content for display
+                content = r.content[:200] + "..." if len(r.content) > 200 else r.content
+                content = content.replace("\n", " ")
+                
+                console.print(Panel(
+                    f"{content}\n\n"
+                    f"[dim]Source: {r.source}[/dim]\n"
+                    f"[dim]Type: {r.memory_type}[/dim]",
+                    title=f"[cyan]{r.project_name}[/cyan] [green]{r.score:.3f}[/green]",
+                    border_style="blue",
+                ))
+            
+        except Exception as e:
+            console.print(Panel.fit(
+                f"Search failed:\n[red]{e}[/red]",
+                title="Error",
+                border_style="red",
+            ))
+            raise typer.Exit(1)
+    
+    asyncio.run(do_search())
+
+
+@app.command()
+def global_unregister(
+    name: str = typer.Argument(..., help="Project name to unregister"),
+    delete_memories: bool = typer.Option(False, "--delete", help="Delete associated memories"),
+):
+    """Unregister a project from global memory.
+    
+    Examples:
+        memnexus global-unregister old-project
+        memnexus global-unregister temp-project --delete  # Also delete memories
+    """
+    async def do_unregister():
+        try:
+            memory = await GlobalMemory.init()
+            
+            project = memory.get_project(name)
+            if not project:
+                console.print(f"[yellow]Project '{name}' not found.[/yellow]")
+                raise typer.Exit(1)
+            
+            success = memory.unregister_project(name, delete_memories=delete_memories)
+            
+            if success:
+                delete_msg = " (memories deleted)" if delete_memories else ""
+                console.print(Panel.fit(
+                    f"[green]✓[/green] Project '{name}' unregistered{delete_msg}\n\n"
+                    f"Path: [dim]{project.path}[/dim]",
+                    title="Global Memory",
+                    border_style="green",
+                ))
+            else:
+                console.print(f"[yellow]Failed to unregister '{name}'[/yellow]")
+                
+        except Exception as e:
+            console.print(Panel.fit(
+                f"Unregister failed:\n[red]{e}[/red]",
+                title="Error",
+                border_style="red",
+            ))
+            raise typer.Exit(1)
+    
+    asyncio.run(do_unregister())
 
 
 @app.command()

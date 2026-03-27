@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **Global Memory** - Cross-project knowledge aggregation
+  - Register multiple projects: `memnexus global-register <name>`
+  - Search across all projects: `memnexus global-search <query>`
+  - Sync projects to global: `memnexus global-sync`
+  - List registered projects: `memnexus global-list`
+  - Unregister projects: `memnexus global-unregister <name>`
+  - Global config stored in `~/.memnexus/global/`
+  - Project metadata (tags, description, last synced)
+  - Filter search by project or across all
+
 ### 🔧 Changes
 
 - **Dependency Cleanup** - Removed unused dependencies for faster installation
