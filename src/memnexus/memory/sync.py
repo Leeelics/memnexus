@@ -1,7 +1,17 @@
 """Real-time memory synchronization for MemNexus.
 
-Provides real-time synchronization of memories between agents in a session.
-Uses WebSocket and pub/sub for efficient distribution.
+⚠️  EXPERIMENTAL / FROZEN - Not actively maintained
+
+This module provides real-time synchronization of memories between agents in a
+session. It was designed for multi-agent collaboration scenarios which are no
+longer the primary focus of MemNexus.
+
+Status:
+- Not imported by default (to avoid redis dependency)
+- Requires: pip install memnexus[sync]
+- May be removed in future versions
+
+For multi-agent sync, consider using external message brokers directly.
 """
 
 import asyncio

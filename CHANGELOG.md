@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [Unreleased]
+
+### 🔧 Changes
+
+- **Dependency Cleanup** - Removed unused dependencies for faster installation
+  - Removed: sqlalchemy, asyncpg, alembic, aiofiles, asyncio-mqtt, pandas
+  - Removed: python-dotenv, structlog, tenacity, cryptography, python-jose, passlib
+  - Removed: tree-sitter, tree-sitter-python (AST parsing used instead)
+  - Removed: websockets (not used)
+  - Removed: pydantic-settings (not used)
+  - Moved redis to optional dependencies (`pip install memnexus[sync]`)
+  - Updated sync.py as experimental/frozen feature
+
 ## [0.3.0] - 2026-03-27
 
 ### ✨ New Features

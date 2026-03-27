@@ -18,12 +18,14 @@ Experimental Components (frozen in v1.0):
 from memnexus.memory.store import MemoryStore, MemoryEntry
 from memnexus.memory.context import ContextManager
 from memnexus.memory.rag import RAGPipeline, Document, DocumentChunker
-from memnexus.memory.sync import (
-    MemorySyncManager,
-    MemorySyncBus,
-    AgentMemoryBridge,
-    SyncEvent,
-)
+
+# Sync features require: pip install redis
+# from memnexus.memory.sync import (
+#     MemorySyncManager,
+#     MemorySyncBus,
+#     AgentMemoryBridge,
+#     SyncEvent,
+# )
 
 # Core types
 from memnexus.memory.core.types import (
@@ -43,10 +45,6 @@ __all__ = [
     "RAGPipeline",
     "Document",
     "DocumentChunker",
-    "MemorySyncManager",
-    "MemorySyncBus",
-    "AgentMemoryBridge",
-    "SyncEvent",
     # Core types
     "MemoryType",
     "RetrievalResult",
@@ -56,4 +54,5 @@ __all__ = [
     # Code integration (Week 3)
     "CodeMemoryExtractor",
     "CodeSymbol",
+    # Note: Sync features require redis, import directly from memory.sync
 ]
