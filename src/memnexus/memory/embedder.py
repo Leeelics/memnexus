@@ -1,13 +1,12 @@
 """Lightweight embedding for MemNexus.
 
-Provides TF-IDF based embedding as a lightweight alternative to
-sentence-transformers. For best results, users should use external
-APIs (OpenAI, Cohere, etc.) or local models.
+Two embedding options available:
+1. TF-IDF (default): Lightweight, zero dependencies, good for code search
+2. External API: Best quality via OpenAI API (requires `pip install openai`)
 
-Recommended external options:
-- OpenAI: text-embedding-3-small
-- Cohere: embed-english-v3
-- Local: sentence-transformers (all-MiniLM-L6-v2)
+Recommended setup:
+- Default (TF-IDF): Fast install, works out of the box
+- OpenAI API: Set embedding.method="openai" in config.yaml for best quality
 """
 
 import re
@@ -276,42 +275,6 @@ class ExternalApiEmbedder:
         return [self.embed(text) for text in texts]
 
 
-class SentenceTransformersEmbedder:
-    """Embedder using sentence-transformers library.
-    
-    Good for local, high-quality embeddings without API calls.
-    Requires: pip install sentence-transformers
-    
-    Example:
-        >>> embedder = SentenceTransformersEmbedder("all-MiniLM-L6-v2")
-        >>> embedding = embedder.embed("def authenticate_user(username, password):")
-    """
-    
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
-        """Initialize sentence-transformers embedder.
-        
-        Args:
-            model_name: Model name from HuggingFace
-        """
-        try:
-            from sentence_transformers import SentenceTransformer
-        except ImportError:
-            raise ImportError(
-                "sentence-transformers not installed. "
-                "Run: pip install sentence-transformers"
-            )
-        
-        self.model = SentenceTransformer(model_name)
-    
-    def embed(self, text: str) -> List[float]:
-        """Embed text."""
-        return self.model.encode(text).tolist()
-    
-    def embed_batch(self, texts: List[str]) -> List[List[float]]:
-        """Embed multiple texts."""
-        return self.model.encode(texts).tolist()
-
-
 def get_embedder(
     method: str = "tfidf",
     dim: int = 384,
@@ -319,8 +282,12 @@ def get_embedder(
 ):
     """Get embedder by method name.
     
+    Two options available:
+    1. TF-IDF (default): Lightweight, zero dependencies, good for keyword matching
+    2. External API: Best quality embeddings via OpenAI/Cohere/etc.
+    
     Args:
-        method: "tfidf", "hash", "openai", "sentence-transformers"
+        method: "tfidf", "hash", or "openai"
         dim: Embedding dimension (for local methods)
         **kwargs: Additional args for specific methods
         
@@ -337,9 +304,6 @@ def get_embedder(
         ...     api_key="sk-...",
         ...     model="text-embedding-3-small"
         ... )
-        
-        >>> # Local neural model (requires sentence-transformers)
-        >>> embedder = get_embedder(method="sentence-transformers")
     """
     if method == "tfidf":
         return TfidfEmbedder(dim=dim)
@@ -351,9 +315,5 @@ def get_embedder(
             provider="openai",
             model=kwargs.get("model", "text-embedding-3-small"),
         )
-    elif method == "sentence-transformers":
-        return SentenceTransformersEmbedder(
-            model_name=kwargs.get("model", "all-MiniLM-L6-v2")
-        )
     else:
-        raise ValueError(f"Unknown embedding method: {method}")
+        raise ValueError(f"Unknown embedding method: {method}. Use 'tfidf', 'hash', or 'openai'.")

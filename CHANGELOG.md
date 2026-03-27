@@ -21,8 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Lightweight TF-IDF Embedding** - Zero-dependency embedding (no more zero vectors!)
   - Default: TF-IDF embedding (pure Python, no ML libraries)
   - Optional: Hash embedder (even simpler)
-  - External API support: OpenAI, Cohere, etc.
-  - Local model support: sentence-transformers
+  - External API support: OpenAI (best quality)
   - Configurable via `embedding.method` in config.yaml
 
 ### 🔧 Technical Details
@@ -30,10 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `IndexStateManager` class for tracking index state
 - Added `FileIndexState` and `GitIndexState` dataclasses
 - Added `embedder.py` with multiple embedding strategies:
-  - `TfidfEmbedder`: Lightweight, keyword-based
+  - `TfidfEmbedder`: Lightweight, keyword-based (default)
   - `HashEmbedder`: Ultra-lightweight feature hashing
-  - `ExternalApiEmbedder`: OpenAI API support
-  - `SentenceTransformersEmbedder`: Local neural models
+  - `ExternalApiEmbedder`: OpenAI API support (best quality)
 - Modified `index_git_history()` to support `incremental` parameter
 - Modified `index_codebase()` to support `incremental` parameter
 - Added `reset_index()` method to `CodeMemory` class

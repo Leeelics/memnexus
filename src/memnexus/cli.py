@@ -90,14 +90,15 @@ memory:
   path: ".memnexus/memory.lance"
 
 # Embedding configuration
-# method: tfidf (default), hash, openai, sentence-transformers
-# For best results, use external API:
-#   method: openai
-#   api_key: $OPENAI_API_KEY
-#   model: text-embedding-3-small
+# Two options:
+# 1. tfidf (default): Lightweight, zero dependencies, good for code search
+# 2. openai: Best quality via API (requires api_key)
 embedding:
   method: "tfidf"
   dim: 384
+  # For OpenAI, uncomment and configure:
+  # api_key: "sk-..."  # Or set OPENAI_API_KEY env var
+  # model: "text-embedding-3-small"
 
 git:
   enabled: true

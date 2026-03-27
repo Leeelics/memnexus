@@ -67,18 +67,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Full embedding support with local models (heavy dependencies)
-embedding = [
-    "sentence-transformers>=3.3.0",
-    "llama-index>=0.12.0",
-    "llama-index-vector-stores-lancedb>=0.3.0",
+# External API support (OpenAI)
+api = [
+    "openai>=1.0.0",
 ]
 
 # All features
 full = [
-    "sentence-transformers>=3.3.0",
-    "llama-index>=0.12.0",
-    "llama-index-vector-stores-lancedb>=0.3.0",
+    "openai>=1.0.0",
 ]
 
 frontend = [
