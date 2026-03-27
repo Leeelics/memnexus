@@ -117,21 +117,28 @@ POST /api/v1/memory
 ### Index Git History
 
 ```http
-POST /api/v1/git/index?limit={limit}
+POST /api/v1/git/index?limit={limit}&incremental={true|false}
 ```
 
 **Parameters:**
 - `limit` (optional): Maximum commits to index [default: 1000]
+- `incremental` (optional): Only index new commits since last index [default: true]
 
 **Response:**
 ```json
 {
-  "indexed": 42,
-  "total": 42,
+  "indexed": 5,
+  "total": 5,
   "type": "git_commits",
-  "errors": []
+  "errors": [],
+  "incremental": true,
+  "skipped": false
 }
 ```
+
+**Notes:**
+- When `incremental=true`, only commits not previously indexed will be processed
+- If no new commits exist, returns `indexed: 0` with `skipped: true`
 
 ### Search Git History
 
@@ -169,20 +176,34 @@ POST /api/v1/code/index
 ```json
 {
   "languages": ["python"],
-  "file_patterns": ["*.py"]
+  "file_patterns": ["*.py"],
+  "incremental": true
 }
 ```
+
+**Parameters:**
+- `languages` (optional): List of languages to index
+- `file_patterns` (optional): File patterns to include
+- `incremental` (optional): Only index modified files [default: true]
 
 **Response:**
 ```json
 {
-  "indexed": 156,
-  "files_processed": 23,
+  "indexed": 12,
+  "files_processed": 3,
+  "files_skipped": 20,
+  "files_updated": ["src/auth.py", "src/models.py"],
   "type": "code_symbols",
   "languages": ["python"],
-  "errors": []
+  "errors": [],
+  "incremental": true
 }
 ```
+
+**Notes:**
+- When `incremental=true`, only files modified since last index will be processed
+- `files_skipped` shows how many files were skipped because they haven't changed
+- Deleted files are automatically removed from the index state
 
 ### Search Code
 

@@ -102,20 +102,28 @@ Index project into memory.
 memnexus index [OPTIONS]
 
 Options:
-  --path, -p PATH     Project path [default: current directory]
-  --git / --no-git    Index Git history [default: enabled]
-  --code / --no-code  Index codebase [default: disabled]
-  --limit, -l INTEGER Maximum Git commits to index [default: 1000]
-  --lang TEXT         Language to index (python, javascript, typescript)
+  --path, -p PATH         Project path [default: current directory]
+  --git / --no-git        Index Git history [default: enabled]
+  --code / --no-code      Index codebase [default: disabled]
+  --limit, -l INTEGER     Maximum Git commits to index [default: 1000]
+  --lang TEXT             Language to index (python, javascript, typescript)
+  --incremental / --full  Use incremental indexing [default: incremental]
+  --reset                 Reset index state before indexing (forces full re-index)
 ```
 
 Examples:
 ```bash
-# Index Git history only
+# Index Git history only (incremental)
 memnexus index
 
 # Index both Git and code
 memnexus index --git --code
+
+# Force full re-index
+memnexus index --full
+
+# Reset and re-index everything
+memnexus index --reset --git --code
 
 # Index Python code only
 memnexus index --code --lang python
@@ -123,6 +131,12 @@ memnexus index --code --lang python
 # Index specific project
 memnexus index --path ~/projects/my-app --git --code
 ```
+
+**Incremental Indexing:**
+- By default, only new/modified commits and files are indexed
+- Index state is stored in `.memnexus/index_state.json`
+- Use `--full` to force complete re-index
+- Use `--reset` to clear index state before indexing
 
 ### search
 
@@ -159,6 +173,40 @@ memnexus search "authenticate" --code --type function
 # More results
 memnexus search "user model" --limit 10
 ```
+
+### reset
+
+Reset index state to force re-indexing.
+
+```bash
+memnexus reset [OPTIONS]
+
+Options:
+  --path, -p PATH  Project path [default: current directory]
+  --git            Reset Git index state
+  --code           Reset code index state
+  --all, -a        Reset all index state
+```
+
+Examples:
+```bash
+# Reset Git index state
+memnexus reset --git
+
+# Reset code index state
+memnexus reset --code
+
+# Reset everything
+memnexus reset --all
+
+# Reset specific project
+memnexus reset --all --path ~/projects/my-app
+```
+
+**Use Cases:**
+- After manually deleting `.memnexus/memory.lance`
+- When index state becomes corrupted
+- To force complete re-index from scratch
 
 ### server
 

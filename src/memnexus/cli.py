@@ -197,15 +197,19 @@ def index(
     code: bool = typer.Option(False, "--code/--no-code", help="Index codebase"),
     limit: int = typer.Option(1000, "--limit", "-l", help="Max Git commits to index"),
     language: Optional[str] = typer.Option(None, "--lang", help="Language to index (python, javascript, typescript)"),
+    incremental: bool = typer.Option(True, "--incremental/--full", help="Incremental vs full re-index"),
+    reset: bool = typer.Option(False, "--reset", help="Reset index state before indexing (forces full re-index)"),
 ):
     """Index project into memory.
     
     Examples:
-        memnexus index              # Index Git history
+        memnexus index              # Index Git history (incremental)
         memnexus index --git        # Same as above
         memnexus index --code       # Index code (Python by default)
         memnexus index --code --lang python
         memnexus index --git --code  # Index both
+        memnexus index --full       # Force full re-index
+        memnexus index --reset      # Reset state and full re-index
     """
     project_path = _get_project_path(path)
     
@@ -221,12 +225,31 @@ def index(
         try:
             memory = await CodeMemory.init(project_path)
             
+            # Reset index state if requested
+            if reset:
+                console.print("[yellow]Resetting index state...[/yellow]")
+                await memory.reset_index(git=git, code=code, all=(git and code))
+                incremental = False  # Force full re-index after reset
+            
+            mode_str = "incremental" if incremental else "full"
+            console.print(f"Indexing mode: [cyan]{mode_str}[/cyan]")
+            
             if git:
                 console.print("Indexing Git history...")
-                result = await memory.index_git_history(limit=limit)
+                result = await memory.index_git_history(
+                    limit=limit,
+                    incremental=incremental
+                )
                 indexed = result.get('commits_indexed', 0)
                 total = result.get('total_commits', 0)
-                console.print(f"[green]✓[/green] Indexed {indexed} commits (from {total} total)")
+                skipped = result.get('skipped', False)
+                
+                if indexed > 0:
+                    console.print(f"[green]✓[/green] Indexed {indexed} new commits")
+                elif skipped and incremental:
+                    console.print(f"[dim]✓ No new commits to index (already up to date)[/dim]")
+                else:
+                    console.print(f"[green]✓[/green] Indexed {indexed} commits")
                 
                 errors = result.get('errors', [])
                 if errors:
@@ -242,22 +265,36 @@ def index(
                 
                 result = await memory.index_codebase(
                     languages=languages,
-                    progress_callback=progress
+                    progress_callback=progress,
+                    incremental=incremental
                 )
                 
                 indexed = result.get('symbols_indexed', 0)
                 files = result.get('files_processed', 0)
-                console.print(f"[green]✓[/green] Indexed {indexed} symbols from {files} files")
+                skipped = result.get('files_skipped', 0)
+                
+                if indexed > 0:
+                    console.print(f"[green]✓[/green] Indexed {indexed} symbols from {files} files")
+                elif incremental and files == 0:
+                    console.print(f"[dim]✓ No modified files to index (already up to date)[/dim]")
+                else:
+                    console.print(f"[green]✓[/green] Indexed {indexed} symbols from {files} files")
+                
+                if skipped > 0 and incremental:
+                    console.print(f"[dim]  ({skipped} files skipped - unchanged)[/dim]")
                 
                 errors = result.get('errors', [])
                 if errors:
                     console.print(f"[yellow]⚠[/yellow] {len(errors)} errors during indexing")
             
             stats = memory.get_stats()
+            index_state = stats.get('index_state', {})
             console.print(Panel.fit(
                 f"Total memories: [bold]{stats['total_memories']}[/bold]\n"
                 f"Git commits: [bold]{stats['git_commits_indexed']}[/bold]\n"
-                f"Code symbols: [bold]{stats['code_symbols_indexed']}[/bold]",
+                f"Code symbols: [bold]{stats['code_symbols_indexed']}[/bold]\n"
+                f"Files tracked: [bold]{index_state.get('files_tracked', 0)}[/bold]\n"
+                f"Last updated: [dim]{index_state.get('last_updated', 'never')[:19]}[/dim]",
                 title="Indexing Complete",
                 border_style="green",
             ))
@@ -395,6 +432,64 @@ def search(
             raise typer.Exit(1)
     
     asyncio.run(do_search())
+
+
+@app.command()
+def reset(
+    path: Optional[str] = typer.Option(".", "--path", "-p", help="Project path"),
+    git: bool = typer.Option(False, "--git", help="Reset Git index state"),
+    code: bool = typer.Option(False, "--code", help="Reset code index state"),
+    all: bool = typer.Option(False, "--all", "-a", help="Reset all index state"),
+):
+    """Reset index state to force re-indexing.
+    
+    Examples:
+        memnexus reset --git       # Reset Git index state
+        memnexus reset --code      # Reset code index state
+        memnexus reset --all       # Reset all index state
+    """
+    if not git and not code and not all:
+        console.print(Panel.fit(
+            "Please specify what to reset:\n"
+            "  --git   Reset Git index state\n"
+            "  --code  Reset code index state\n"
+            "  --all   Reset all index state",
+            title="Reset Options Required",
+            border_style="yellow",
+        ))
+        raise typer.Exit(1)
+    
+    project_path = _get_project_path(path)
+    
+    async def do_reset():
+        try:
+            memory = await CodeMemory.init(project_path)
+            
+            result = await memory.reset_index(git=git, code=code, all=all)
+            
+            if result.get("status") == "success":
+                console.print(Panel.fit(
+                    f"[green]✓[/green] {result['message']}\n\n"
+                    f"Next: Run [cyan]memnexus index[/cyan] to re-index",
+                    title="Reset Complete",
+                    border_style="green",
+                ))
+            else:
+                console.print(Panel.fit(
+                    f"[yellow]⚠[/yellow] {result.get('message', 'Unknown error')}",
+                    title="Reset Warning",
+                    border_style="yellow",
+                ))
+                
+        except Exception as e:
+            console.print(Panel.fit(
+                f"Reset failed:\n[red]{e}[/red]",
+                title="Error",
+                border_style="red",
+            ))
+            raise typer.Exit(1)
+    
+    asyncio.run(do_reset())
 
 
 @app.command()

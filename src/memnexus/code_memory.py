@@ -20,6 +20,7 @@ import yaml
 from memnexus.memory.store import MemoryEntry, MemoryStore
 from memnexus.memory.git import GitCommit, GitMemoryExtractor
 from memnexus.memory.code import CodeSymbol, CodeMemoryExtractor
+from memnexus.memory.index_state import IndexStateManager
 
 
 @dataclass
@@ -72,6 +73,7 @@ class CodeMemory:
         self._memory_store: Optional[MemoryStore] = None
         self._git_extractor: Optional[GitMemoryExtractor] = None
         self._code_extractor: Optional[CodeMemoryExtractor] = None
+        self._index_state: Optional[IndexStateManager] = None
         
         # State
         self._initialized = False
@@ -127,6 +129,9 @@ class CodeMemory:
         )
         await self._memory_store.initialize()
         
+        # Initialize index state manager
+        self._index_state = IndexStateManager(self.project_path)
+        
         # Initialize extractors (lazy loading)
         try:
             self._git_extractor = GitMemoryExtractor(str(self.project_path))
@@ -144,7 +149,8 @@ class CodeMemory:
         self, 
         limit: int = 1000,
         file_path: Optional[str] = None,
-        progress_callback: Optional[callable] = None
+        progress_callback: Optional[callable] = None,
+        incremental: bool = True,
     ) -> Dict[str, Any]:
         """Index Git commit history into memory.
         
@@ -152,6 +158,7 @@ class CodeMemory:
             limit: Maximum number of commits to index
             file_path: Optional specific file to index history for
             progress_callback: Optional callback(current, total) for progress updates
+            incremental: If True, only index new commits since last index
             
         Returns:
             Statistics about the indexing operation
@@ -159,6 +166,9 @@ class CodeMemory:
         Example:
             >>> stats = await memory.index_git_history(limit=100)
             >>> print(f"Indexed {stats['commits_indexed']} commits")
+            >>> 
+            >>> # Incremental index - only new commits
+            >>> stats = await memory.index_git_history(incremental=True)
         """
         if not self._initialized:
             raise RuntimeError("CodeMemory not initialized")
@@ -172,8 +182,25 @@ class CodeMemory:
             limit=limit
         )
         
+        # Filter for incremental indexing
+        if incremental and self._index_state:
+            git_state = self._index_state.get_git_state()
+            if git_state and git_state.last_commit_hash:
+                # Find commits after the last indexed one
+                new_commits = []
+                for commit in commits:
+                    if commit.hash not in git_state.indexed_commits:
+                        new_commits.append(commit)
+                    else:
+                        # Commits are ordered newest first, so we can stop
+                        # when we find an already indexed commit
+                        break
+                commits = new_commits
+        
         indexed_count = 0
         errors = []
+        indexed_hashes = []
+        last_commit = None
         
         for i, commit in enumerate(commits):
             try:
@@ -206,12 +233,25 @@ class CodeMemory:
                 )
                 await self._memory_store.add(entry)
                 indexed_count += 1
+                indexed_hashes.append(commit.hash)
+                last_commit = commit
                 
                 if progress_callback:
                     progress_callback(i + 1, len(commits))
                     
             except Exception as e:
                 errors.append(f"Failed to index commit {commit.hash}: {e}")
+        
+        # Update index state
+        if self._index_state and last_commit:
+            current_total = self._index_state.get_git_state()
+            current_total_count = current_total.total_indexed if current_total else 0
+            self._index_state.update_git_state(
+                last_commit_hash=last_commit.hash,
+                last_commit_timestamp=last_commit.timestamp.isoformat(),
+                new_commits=indexed_hashes,
+                total_indexed=current_total_count + indexed_count
+            )
         
         self._stats["git_commits_indexed"] += indexed_count
         
@@ -220,6 +260,8 @@ class CodeMemory:
             "total_commits": len(commits),
             "errors": errors,
             "file_path": file_path,
+            "incremental": incremental,
+            "skipped": incremental and self._index_state and git_state and len(commits) < len(self._git_extractor.extract_recent(file_path=file_path, limit=limit)),
         }
     
     async def query_git_history(
@@ -365,7 +407,8 @@ class CodeMemory:
         languages: Optional[List[str]] = None,
         file_patterns: Optional[List[str]] = None,
         exclude_patterns: Optional[List[str]] = None,
-        progress_callback: Optional[callable] = None
+        progress_callback: Optional[callable] = None,
+        incremental: bool = True,
     ) -> Dict[str, Any]:
         """Index codebase structure into memory.
         
@@ -374,6 +417,7 @@ class CodeMemory:
             file_patterns: File patterns to include (default: based on languages)
             exclude_patterns: Patterns to exclude
             progress_callback: Optional callback(current, total, file)
+            incremental: If True, only index modified files since last index
             
         Returns:
             Statistics about the indexing operation
@@ -381,6 +425,9 @@ class CodeMemory:
         Example:
             >>> result = await memory.index_codebase(["python"])
             >>> print(f"Indexed {result['symbols_indexed']} symbols from {result['files_processed']} files")
+            >>> 
+            >>> # Incremental index - only modified files
+            >>> result = await memory.index_codebase(incremental=True)
         """
         if not self._initialized:
             raise RuntimeError("CodeMemory not initialized")
@@ -407,14 +454,31 @@ class CodeMemory:
             exclude_patterns=exclude_patterns
         )
         
+        # Filter for incremental indexing
+        files_to_skip = set()
+        if incremental and self._index_state:
+            for file_path in chunks_by_file.keys():
+                rel_path = file_path
+                if file_path.startswith(str(self.project_path)):
+                    rel_path = str(Path(file_path).relative_to(self.project_path))
+                
+                if not self._index_state.should_index_file(rel_path):
+                    files_to_skip.add(file_path)
+        
+        # Remove skipped files from processing
+        for file_path in files_to_skip:
+            del chunks_by_file[file_path]
+        
         indexed_count = 0
         errors = []
         files_processed = 0
+        files_updated = []
         
         total_files = len(chunks_by_file)
         
         for file_path, chunks in chunks_by_file.items():
             files_processed += 1
+            file_symbol_count = 0
             
             if progress_callback:
                 progress_callback(files_processed, total_files, file_path)
@@ -452,17 +516,46 @@ class CodeMemory:
                     
                     await self._memory_store.add(entry)
                     indexed_count += 1
+                    file_symbol_count += 1
                     
                 except Exception as e:
                     errors.append(f"Failed to index chunk from {file_path}: {e}")
+            
+            # Update file state
+            if self._index_state and file_symbol_count > 0:
+                rel_path = file_path
+                if file_path.startswith(str(self.project_path)):
+                    rel_path = str(Path(file_path).relative_to(self.project_path))
+                self._index_state.update_file_state(
+                    rel_path,
+                    symbol_count=file_symbol_count
+                )
+                files_updated.append(rel_path)
+        
+        # Clean up deleted files from state
+        if self._index_state and incremental:
+            current_files = set()
+            for pattern in file_patterns:
+                for file_path in self.project_path.rglob(pattern):
+                    rel_path = str(file_path.relative_to(self.project_path))
+                    current_files.add(rel_path)
+            
+            state = self._index_state.load_state()
+            tracked_files = set(state.file_states.keys())
+            deleted_files = tracked_files - current_files
+            for deleted in deleted_files:
+                self._index_state.remove_file_state(deleted)
         
         self._stats["code_symbols_indexed"] += indexed_count
         
         return {
             "symbols_indexed": indexed_count,
             "files_processed": files_processed,
+            "files_skipped": len(files_to_skip),
+            "files_updated": files_updated,
             "errors": errors,
             "languages": languages or ["python"],
+            "incremental": incremental,
         }
     
     async def search_code(
@@ -632,16 +725,74 @@ class CodeMemory:
             for r in results
         ]
     
+    # ==================== Index State Management ====================
+    
+    async def reset_index(
+        self, 
+        git: bool = False, 
+        code: bool = False,
+        all: bool = False
+    ) -> Dict[str, Any]:
+        """Reset index state to force re-indexing.
+        
+        Args:
+            git: Reset Git index state
+            code: Reset code index state
+            all: Reset all index state
+            
+        Returns:
+            Status of reset operation
+        """
+        if not self._initialized:
+            raise RuntimeError("CodeMemory not initialized")
+        
+        if not self._index_state:
+            return {"status": "error", "message": "Index state not available"}
+        
+        reset_actions = []
+        
+        if all or git:
+            self._index_state.reset_git_state()
+            reset_actions.append("git")
+        
+        if all or code:
+            self._index_state.reset_code_state()
+            reset_actions.append("code")
+        
+        if not reset_actions:
+            return {
+                "status": "warning",
+                "message": "No reset action specified. Use git=True, code=True, or all=True"
+            }
+        
+        return {
+            "status": "success",
+            "reset": reset_actions,
+            "message": f"Reset index state for: {', '.join(reset_actions)}"
+        }
+    
+    def get_index_state_stats(self) -> Dict[str, Any]:
+        """Get index state statistics."""
+        if not self._index_state:
+            return {"error": "Index state not available"}
+        return self._index_state.get_stats()
+    
     # ==================== Stats & Info ====================
     
     def get_stats(self) -> Dict[str, Any]:
         """Get indexing statistics."""
-        return {
+        stats = {
             **self._stats,
             "project_path": str(self.project_path),
             "initialized": self._initialized,
             "has_git": self._git_extractor is not None and self._git_extractor.is_valid(),
         }
+        
+        # Add index state stats if available
+        if self._index_state:
+            stats["index_state"] = self._index_state.get_stats()
+        
+        return stats
     
     async def close(self) -> None:
         """Close all resources."""

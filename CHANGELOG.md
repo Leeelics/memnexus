@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-27
+
+### ✨ New Features
+
+- **Incremental Indexing** - Major performance improvement for large projects
+  - Git history: Only index new commits since last run
+  - Code: Only index modified files (based on content hash and mtime)
+  - Index state stored in `.memnexus/index_state.json`
+  - New CLI flags: `--incremental/--full` and `--reset`
+  - New CLI command: `memnexus reset --git/--code/--all`
+
+### 🔧 Technical Details
+
+- Added `IndexStateManager` class for tracking index state
+- Added `FileIndexState` and `GitIndexState` dataclasses
+- Modified `index_git_history()` to support `incremental` parameter
+- Modified `index_codebase()` to support `incremental` parameter
+- Added `reset_index()` method to `CodeMemory` class
+- Updated `get_stats()` to include index state statistics
+
 ## [0.2.2] - 2026-03-27
 
 ### 🐛 Bug Fixes

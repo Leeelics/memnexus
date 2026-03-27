@@ -12,7 +12,7 @@ Quick Start:
 For more information, see: https://github.com/Leeelics/MemNexus
 """
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 __author__ = "Leeelics"
 __license__ = "MIT"
 
