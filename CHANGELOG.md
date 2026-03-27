@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-03-27
+
+### 🐛 Bug Fixes
+
+- **CLI Entry Point**: Fixed missing `main` function in `cli.py` that caused `ImportError` when running `memnexus` command after installation via `uv tool install`
+  - The `pyproject.toml` defined entry point as `memnexus.cli:main` but the function was missing
+  - Added `main()` function that calls `app()` to properly expose the CLI entry point
+
+## [0.2.1] - 2026-03-26
+
+### 🐛 Bug Fixes
+
+- Version bump for packaging fixes
+
 ## [0.2.0] - 2026-03-25
 
 ### 🎉 First Public Release - Code Memory for AI Programming Tools

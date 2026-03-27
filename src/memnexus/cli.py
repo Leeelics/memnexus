@@ -523,5 +523,10 @@ def install_plugin(
         raise typer.Exit(1)
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """CLI entry point."""
     app()
+
+
+if __name__ == "__main__":
+    main()
