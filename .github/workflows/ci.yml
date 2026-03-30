@@ -2,106 +2,181 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
+    paths:
+      - ".github/workflows/**"
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "Makefile"
   pull_request:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "Makefile"
 
 env:
+  NO_COLOR: "1"
+  TERM: dumb
   UV_SYSTEM_PYTHON: 1
 
 jobs:
-  test-python:
+  check:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Run linting
+        run: make lint
+
+      - name: Check formatting
+        run: make format-check
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Run type check
+        run: make typecheck
+
+  test:
+    name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ["3.12", "3.13"]
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: "latest"
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Cache uv dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/uv
-        key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml', 'uv.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-uv-
-    
-    - name: Install dependencies
-      run: uv sync --all-extras --dev
-    
-    - name: Lint with ruff
-      run: |
-        uv run ruff check src/memnexus
-        uv run ruff format --check src/memnexus
-    
-    - name: Type check with mypy
-      run: uv run mypy src/memnexus
-    
-    - name: Test with pytest
-      run: uv run pytest tests/ -v --tb=short
+      - uses: actions/checkout@v4
 
-  check-build:
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Run tests
+        run: make test-ci
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: junit.xml
+          retention-days: 7
+
+  build:
+    name: Build & Check
     runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: "latest"
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-    
-    - name: Build package
-      run: uv build
-    
-    - name: Check package
-      run: |
-        uv run twine check dist/*
-    
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: dist
-        path: dist/
-        retention-days: 1
+    needs: [check, typecheck, test]
 
-  check-docs:
-    runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Check documentation
-      run: |
-        test -f README.md
-        test -f CHANGELOG.md
-        test -f LICENSE
-        test -f pyproject.toml
-    
-    - name: Check version consistency
-      run: |
-        PYPROJECT_VERSION=$(grep '^version' pyproject.toml | head -1 | cut -d'"' -f2)
-        INIT_VERSION=$(grep '__version__' src/memnexus/__init__.py | head -1 | cut -d'"' -f2)
-        echo "pyproject.toml: $PYPROJECT_VERSION"
-        echo "__init__.py: $INIT_VERSION"
-        if [ "$PYPROJECT_VERSION" != "$INIT_VERSION" ]; then
-          echo "Version mismatch!"
-          exit 1
-        fi
-        echo "✓ Versions are consistent"
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Build package
+        run: make build-check
+
+      - name: Check version consistency
+        run: uv run scripts/check_version.py
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check documentation files exist
+        run: |
+          test -f README.md || (echo "❌ README.md missing" && exit 1)
+          test -f CHANGELOG.md || (echo "❌ CHANGELOG.md missing" && exit 1)
+          test -f LICENSE || (echo "❌ LICENSE missing" && exit 1)
+          test -f pyproject.toml || (echo "❌ pyproject.toml missing" && exit 1)
+          echo "✅ All documentation files present"
+
+      - name: Check version consistency
+        run: |
+          PYPROJECT_VERSION=$(grep '^version' pyproject.toml | head -1 | cut -d'"' -f2)
+          INIT_VERSION=$(grep '__version__' src/memnexus/__init__.py | head -1 | cut -d'"' -f2)
+          echo "pyproject.toml: $PYPROJECT_VERSION"
+          echo "__init__.py: $INIT_VERSION"
+          if [ "$PYPROJECT_VERSION" != "$INIT_VERSION" ]; then
+            echo "❌ Version mismatch!"
+            exit 1
+          fi
+          echo "✅ Versions are consistent"
