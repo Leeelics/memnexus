@@ -1,0 +1,18 @@
+# Typos configuration for MemNexus
+# https://github.com/crate-ci/typos
+
+[files]
+extend-exclude = [
+    "uv.lock",
+    ".git/",
+    ".venv/",
+    "dist/",
+    "*.pyc",
+]
+
+[default]
+# Allow specific words that are not typos
+extend-words = {}
+
+[default.extend-identifiers]
+# Allow specific identifiers that are not typos
