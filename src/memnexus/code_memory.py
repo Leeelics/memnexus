@@ -393,11 +393,36 @@ class CodeMemory:
                     diff_summary="",
                 ))
         
-        # If not enough results, try to index more
-        if len(git_results) < limit:
-            await self.index_git_history(file_path=file_path, limit=limit)
-            # Re-query
-            return await self.get_file_history(file_path, limit)
+        # If not enough results, try to index more (but only once to avoid recursion)
+        if len(git_results) < limit and not hasattr(self, '_file_history_indexing'):
+            self._file_history_indexing = True
+            try:
+                await self.index_git_history(file_path=file_path, limit=limit)
+                # Re-query once
+                results = await self._memory_store.search(
+                    f"file:{file_path}", 
+                    limit=limit
+                )
+                
+                for r in results:
+                    if r.memory_type != "git_commit":
+                        continue
+                    
+                    metadata = r.metadata or {}
+                    files = metadata.get("files", [])
+                    
+                    if file_path in files:
+                        git_results.append(GitSearchResult(
+                            commit_hash=metadata.get("hash", ""),
+                            message=metadata.get("message", ""),
+                            author=metadata.get("author", ""),
+                            date=datetime.fromisoformat(metadata.get("timestamp", "1970-01-01T00:00:00")),
+                            files_changed=files,
+                            relevance_score=1.0,
+                            diff_summary="",
+                        ))
+            finally:
+                delattr(self, '_file_history_indexing')
         
         return git_results[:limit]
     
