@@ -8,9 +8,11 @@ Reference: "Beyond Attention: Breaking the Limits of Transformer Context Length
 with Recurrent Memory" (AAAI 2024)
 """
 
-from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Tuple, Any
+from collections.abc import Callable
+from dataclasses import dataclass
 from enum import Enum
+from typing import Any
+
 import numpy as np
 
 
@@ -120,13 +122,13 @@ class CurriculumLearning:
             base_segment_size=base_segment_size,
             epochs_per_stage=epochs_per_stage,
         )
-        self._metrics_history: List[TrainingMetrics] = []
+        self._metrics_history: list[TrainingMetrics] = []
 
     def create_curriculum(
         self,
-        max_length: Optional[int] = None,
-        num_stages: Optional[int] = None,
-    ) -> List[CurriculumStep]:
+        max_length: int | None = None,
+        num_stages: int | None = None,
+    ) -> list[CurriculumStep]:
         """
         Create progressive length curriculum schedule.
 
@@ -213,11 +215,11 @@ class CurriculumLearning:
 
     def train_with_curriculum(
         self,
-        train_fn: Callable[[CurriculumStep], Tuple[float, float]],
-        max_length: Optional[int] = None,
-        num_stages: Optional[int] = None,
+        train_fn: Callable[[CurriculumStep], tuple[float, float]],
+        max_length: int | None = None,
+        num_stages: int | None = None,
         early_stopping_patience: int = 2,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute curriculum training.
 
@@ -323,7 +325,7 @@ class CurriculumLearning:
         else:
             return self.config.max_segment_size
 
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """
         Get summary of training metrics.
 
@@ -390,7 +392,7 @@ class CurriculumLearning:
 
         return "\n".join(lines)
 
-    def export_checkpoint(self) -> Dict[str, Any]:
+    def export_checkpoint(self) -> dict[str, Any]:
         """
         Export curriculum state for resuming training.
 
@@ -412,7 +414,7 @@ class CurriculumLearning:
         }
 
     @classmethod
-    def from_checkpoint(cls, checkpoint: Dict[str, Any]) -> "CurriculumLearning":
+    def from_checkpoint(cls, checkpoint: dict[str, Any]) -> "CurriculumLearning":
         """
         Restore curriculum from checkpoint.
 

@@ -15,8 +15,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Import directly from code.py to avoid loading other modules
 import importlib.util
-spec = importlib.util.spec_from_file_location("code", 
-    str(Path(__file__).parent.parent / "src" / "memnexus" / "memory" / "code.py"))
+
+spec = importlib.util.spec_from_file_location(
+    "code", str(Path(__file__).parent.parent / "src" / "memnexus" / "memory" / "code.py")
+)
 code_module = importlib.util.module_from_spec(spec)
 sys.modules["code_module"] = code_module
 spec.loader.exec_module(code_module)
@@ -107,7 +109,7 @@ def get_default_controller() -> AuthController:
         _default_controller = create_auth_controller("sqlite:///default.db")
     return _default_controller
 '''
-    
+
     file_path = tmpdir / "auth.py"
     file_path.write_text(content)
     return file_path
@@ -115,17 +117,17 @@ def get_default_controller() -> AuthController:
 
 def test_code_parser():
     """Test CodeParser functionality."""
-    
+
     print("=" * 70)
     print("WEEK 3: Code Parsing Test")
     print("=" * 70)
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         file_path = create_test_python_file(Path(tmpdir))
         print(f"✓ Created test file: {file_path}")
-        
+
         parser = CodeParser()
-        
+
         # Test 1: Parse file
         print("\n[Test 1] Parse Python File")
         print("-" * 40)
@@ -133,15 +135,16 @@ def test_code_parser():
             symbols = parser.parse_file(str(file_path))
             assert len(symbols) > 0, "Should find symbols"
             print(f"✓ Found {len(symbols)} symbols")
-            
+
             for sym in symbols:
                 print(f"  - {sym.symbol_type}: {sym.name} (lines {sym.start_line}-{sym.end_line})")
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-        
+
         # Test 2: Check symbol types
         print("\n[Test 2] Symbol Types")
         print("-" * 40)
@@ -149,20 +152,23 @@ def test_code_parser():
             classes = [s for s in symbols if s.symbol_type == "class"]
             functions = [s for s in symbols if s.symbol_type == "function"]
             methods = [s for s in symbols if s.symbol_type == "method"]
-            
+
             assert len(classes) == 1, f"Expected 1 class, got {len(classes)}"
             assert len(functions) == 2, f"Expected 2 functions, got {len(functions)}"
             assert len(methods) == 4, f"Expected 4 methods, got {len(methods)}"
-            
+
             print(f"✓ Classes: {len(classes)} (AuthController)")
             print(f"✓ Functions: {len(functions)} (create_auth_controller, get_default_controller)")
-            print(f"✓ Methods: {len(methods)} (__init__, authenticate_user, _find_user, session_count)")
+            print(
+                f"✓ Methods: {len(methods)} (__init__, authenticate_user, _find_user, session_count)"
+            )
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-        
+
         # Test 3: Symbol details
         print("\n[Test 3] Symbol Details")
         print("-" * 40)
@@ -174,15 +180,19 @@ def test_code_parser():
             print(f"✓ Class: {auth_controller.name}")
             print(f"  Signature: {auth_controller.signature}")
             doc_preview = auth_controller.docstring[:50] if auth_controller.docstring else "None"
-            print(f"  Docstring: {doc_preview}..." if auth_controller.docstring else "  Docstring: None")
-            
+            print(
+                f"  Docstring: {doc_preview}..."
+                if auth_controller.docstring
+                else "  Docstring: None"
+            )
+
             auth_method = [m for m in methods if m.name == "AuthController.authenticate_user"][0]
             assert "def authenticate_user" in auth_method.signature
             assert "username: str" in auth_method.signature
             assert "-> Optional[dict]" in auth_method.signature
             print(f"✓ Method: {auth_method.name}")
             print(f"  Signature: {auth_method.signature}")
-            
+
             factory_func = [f for f in functions if f.name == "create_auth_controller"][0]
             assert "db_url: str" in factory_func.signature
             assert "-> AuthController" in factory_func.signature
@@ -191,9 +201,10 @@ def test_code_parser():
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-        
+
         # Test 4: Extract imports
         print("\n[Test 4] Extract Imports")
         print("-" * 40)
@@ -201,33 +212,35 @@ def test_code_parser():
             imports = parser.extract_imports(str(file_path))
             assert len(imports) == 3, f"Expected 3 imports, got {len(imports)}"
             print(f"✓ Found {len(imports)} imports")
-            
+
             for imp in imports:
                 print(f"  - {imp.module}: {imp.names}")
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-        
+
         # Test 5: Function calls extraction
         print("\n[Test 5] Extract Function Calls")
         print("-" * 40)
         try:
-            content = '''
+            content = """
 def test():
     result = hashlib.sha256(b"test").hexdigest()
     user = find_user("test")
     return result
-'''
+"""
             calls = parser.extract_function_calls(content)
             print(f"✓ Found function calls: {calls}")
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-    
+
     print("\n" + "=" * 70)
     print("✅ ALL CODE PARSER TESTS PASSED!")
     print("=" * 70)
@@ -236,16 +249,16 @@ def test():
 
 def test_code_chunker():
     """Test CodeChunker functionality."""
-    
+
     print("\n" + "=" * 70)
     print("Code Chunker Test")
     print("=" * 70)
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         file_path = create_test_python_file(Path(tmpdir))
-        
+
         chunker = CodeChunker()
-        
+
         # Test 1: Chunk file
         print("\n[Test 1] Chunk File")
         print("-" * 40)
@@ -253,16 +266,17 @@ def test_code_chunker():
             chunks = chunker.chunk_file(str(file_path))
             assert len(chunks) > 0, "Should create chunks"
             print(f"✓ Created {len(chunks)} chunks")
-            
+
             for chunk in chunks:
                 symbol_name = chunk.symbol.name if chunk.symbol else "Unknown"
                 print(f"  - {chunk.chunk_type}: {symbol_name}")
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-        
+
         # Test 2: Chunk content
         print("\n[Test 2] Chunk Content")
         print("-" * 40)
@@ -271,18 +285,19 @@ def test_code_chunker():
             assert func_chunk.symbol is not None
             assert func_chunk.context is not None
             assert "# File:" in func_chunk.context
-            print(f"✓ Function chunk has context")
+            print("✓ Function chunk has context")
             print(f"  Context preview: {func_chunk.context[:100]}...")
-            
+
             class_chunk = [c for c in chunks if c.chunk_type == "class"][0]
             assert class_chunk.symbol is not None
             print(f"✓ Class chunk has symbol: {class_chunk.symbol.name}")
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-    
+
     print("\n" + "=" * 70)
     print("✅ ALL CODE CHUNKER TESTS PASSED!")
     print("=" * 70)
@@ -291,15 +306,15 @@ def test_code_chunker():
 
 def test_code_memory_extractor():
     """Test CodeMemoryExtractor functionality."""
-    
+
     print("\n" + "=" * 70)
     print("Code Memory Extractor Test")
     print("=" * 70)
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create multiple files
         file1 = create_test_python_file(Path(tmpdir))
-        
+
         file2_content = '''
 """Utils module."""
 
@@ -319,9 +334,9 @@ class DataStore:
 '''
         file2 = Path(tmpdir) / "utils.py"
         file2.write_text(file2_content)
-        
+
         extractor = CodeMemoryExtractor()
-        
+
         # Test 1: Extract from file
         print("\n[Test 1] Extract from File")
         print("-" * 40)
@@ -332,9 +347,10 @@ class DataStore:
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-        
+
         # Test 2: Extract from directory
         print("\n[Test 2] Extract from Directory")
         print("-" * 40)
@@ -342,15 +358,16 @@ class DataStore:
             chunks_by_file = extractor.extract_from_directory(tmpdir, patterns=["*.py"])
             assert len(chunks_by_file) == 2, f"Expected 2 files, got {len(chunks_by_file)}"
             print(f"✓ Extracted from {len(chunks_by_file)} files")
-            
+
             for file_path, chunks in chunks_by_file.items():
                 print(f"  - {Path(file_path).name}: {len(chunks)} chunks")
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-        
+
         # Test 3: File summary
         print("\n[Test 3] File Summary")
         print("-" * 40)
@@ -361,8 +378,8 @@ class DataStore:
             assert summary["functions"] == 2
             assert summary["classes"] == 1
             assert summary["methods"] == 4
-            
-            print(f"✓ File summary:")
+
+            print("✓ File summary:")
             print(f"  - Language: {summary['language']}")
             print(f"  - Functions: {summary['functions']}")
             print(f"  - Classes: {summary['classes']}")
@@ -371,9 +388,10 @@ class DataStore:
         except Exception as e:
             print(f"✗ Failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-    
+
     print("\n" + "=" * 70)
     print("✅ ALL CODE MEMORY EXTRACTOR TESTS PASSED!")
     print("=" * 70)
@@ -382,17 +400,17 @@ class DataStore:
 
 def main():
     """Run all Week 3 tests."""
-    
+
     print("\n" + "=" * 70)
     print("WEEK 3: Code Parsing & Memory Integration")
     print("=" * 70)
-    
+
     all_passed = True
-    
+
     all_passed &= test_code_parser()
     all_passed &= test_code_chunker()
     all_passed &= test_code_memory_extractor()
-    
+
     print("\n" + "=" * 70)
     if all_passed:
         print("✅ ALL WEEK 3 TESTS PASSED!")
@@ -409,7 +427,7 @@ def main():
     else:
         print("❌ SOME TESTS FAILED")
         print("=" * 70)
-    
+
     return all_passed
 
 

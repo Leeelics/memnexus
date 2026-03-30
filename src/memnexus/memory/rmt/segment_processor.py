@@ -5,8 +5,9 @@ Handles sequence segmentation with memory injection and extraction.
 Enables processing long sequences by splitting them into manageable segments.
 """
 
-from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Iterator
+from collections.abc import Iterator
+from dataclasses import dataclass
+
 import numpy as np
 
 
@@ -16,7 +17,7 @@ class Segment:
 
     tokens: np.ndarray
     segment_id: int
-    memory_tokens: Optional[np.ndarray] = None
+    memory_tokens: np.ndarray | None = None
     start_pos: int = 0
     end_pos: int = 0
 
@@ -85,7 +86,7 @@ class SegmentProcessor:
     def segment_sequence(
         self,
         tokens: np.ndarray,
-        segment_size: Optional[int] = None,
+        segment_size: int | None = None,
     ) -> Iterator[Segment]:
         """
         Split tokens into overlapping segments.
@@ -142,7 +143,7 @@ class SegmentProcessor:
     def inject_memory(
         self,
         segment: Segment,
-        memory_tokens: Optional[np.ndarray] = None,
+        memory_tokens: np.ndarray | None = None,
     ) -> np.ndarray:
         """
         Inject memory tokens into a segment.
@@ -246,7 +247,7 @@ class SegmentProcessor:
 
     def merge_segment_outputs(
         self,
-        segments: List[Segment],
+        segments: list[Segment],
         remove_overlap: bool = True,
     ) -> np.ndarray:
         """
@@ -280,7 +281,7 @@ class SegmentProcessor:
     def get_segment_count(
         self,
         seq_len: int,
-        segment_size: Optional[int] = None,
+        segment_size: int | None = None,
     ) -> int:
         """
         Calculate number of segments needed for a sequence.

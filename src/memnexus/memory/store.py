@@ -5,7 +5,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import lancedb
 from lancedb.pydantic import LanceModel, Vector
@@ -17,7 +17,7 @@ from memnexus.memory.embedder import TfidfEmbedder, get_embedder
 @dataclass
 class MemoryEntry:
     """A single memory entry.
-    
+
     Attributes:
         content: The actual content/text
         source: Source of the memory (agent name, user, etc.)
@@ -26,16 +26,17 @@ class MemoryEntry:
         metadata: Additional metadata
         embedding: Vector embedding (optional, auto-generated if not provided)
     """
+
     content: str
     source: str = "system"
-    session_id: Optional[str] = None
+    session_id: str | None = None
     memory_type: str = "generic"
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    embedding: Optional[List[float]] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    embedding: list[float] | None = None
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     timestamp: datetime = field(default_factory=datetime.utcnow)
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -51,10 +52,11 @@ class MemoryEntry:
 # LanceDB Schema
 class MemorySchema(LanceModel):
     """LanceDB schema for memory entries."""
+
     id: str
     content: str
     source: str
-    session_id: Optional[str]
+    session_id: str | None
     memory_type: str
     metadata: str
     timestamp: str
@@ -64,19 +66,19 @@ class MemorySchema(LanceModel):
 
 class MemoryStore:
     """Vector memory store using LanceDB.
-    
+
     Provides semantic search and storage for agent context.
-    
+
     Embedding Options:
         - tfidf (default): Lightweight, no dependencies, good for keyword matching
         - hash: Ultra-lightweight feature hashing
         - openai: Best quality via OpenAI API (requires api_key)
         - sentence-transformers: Local neural model (requires sentence-transformers)
-    
+
     Example:
         store = MemoryStore()
         await store.initialize()
-        
+
         # Add memory
         entry = MemoryEntry(
             content="User wants to build a REST API",
@@ -85,20 +87,20 @@ class MemoryStore:
             memory_type="conversation"
         )
         await store.add(entry)
-        
+
         # Search memories
         results = await store.search("REST API requirements", limit=5)
     """
-    
+
     def __init__(
-        self, 
-        uri: Optional[str] = None,
+        self,
+        uri: str | None = None,
         embedding_method: str = "tfidf",
         embedding_dim: int = 384,
-        **embedder_kwargs
+        **embedder_kwargs,
     ):
         """Initialize memory store.
-        
+
         Args:
             uri: LanceDB URI (default: from settings)
             embedding_method: "tfidf", "hash", "openai", "sentence-transformers"
@@ -109,19 +111,19 @@ class MemoryStore:
         self.embedding_method = embedding_method
         self.embedding_dim = embedding_dim
         self._embedder_kwargs = embedder_kwargs
-        self._db: Optional[lancedb.DBConnection] = None
-        self._table: Optional[lancedb.table.Table] = None
+        self._db: lancedb.DBConnection | None = None
+        self._table: lancedb.table.Table | None = None
         self._embedder = None
-    
+
     async def initialize(self) -> None:
         """Initialize the memory store."""
         # Expand home directory
         uri = Path(self.uri).expanduser()
         uri.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Connect to LanceDB
         self._db = await lancedb.connect_async(str(uri))
-        
+
         # Get or create table
         table_name = "memories"
         try:
@@ -132,35 +134,33 @@ class MemoryStore:
                 table_name,
                 schema=MemorySchema,
             )
-        
+
         # Initialize embedder
         try:
             self._embedder = get_embedder(
-                method=self.embedding_method,
-                dim=self.embedding_dim,
-                **self._embedder_kwargs
+                method=self.embedding_method, dim=self.embedding_dim, **self._embedder_kwargs
             )
         except ImportError as e:
             # Fall back to tfidf if requested method not available
             print(f"Warning: {e}, falling back to tfidf")
             self._embedder = TfidfEmbedder(dim=self.embedding_dim)
-    
+
     async def add(self, entry: MemoryEntry) -> str:
         """Add a memory entry to the store.
-        
+
         Args:
             entry: The memory entry to add
-            
+
         Returns:
             The ID of the added entry
         """
         if self._table is None:
             raise RuntimeError("Memory store not initialized. Call initialize() first.")
-        
+
         # Generate embedding if not provided
         if entry.embedding is None and self._embedder is not None:
             entry.embedding = self._embedder.embed(entry.content)
-        
+
         # Create record
         record = {
             "id": entry.id,
@@ -172,53 +172,53 @@ class MemoryStore:
             "timestamp": entry.timestamp.isoformat(),
             "vector": entry.embedding,
         }
-        
+
         # Add to table
         await self._table.add([record])
-        
+
         return entry.id
-    
+
     async def search(
         self,
         query: str,
         limit: int = 5,
-        session_id: Optional[str] = None,
-        memory_type: Optional[str] = None,
-    ) -> List[MemoryEntry]:
+        session_id: str | None = None,
+        memory_type: str | None = None,
+    ) -> list[MemoryEntry]:
         """Search memories by semantic similarity.
-        
+
         Args:
             query: Search query
             limit: Maximum number of results
             session_id: Filter by session ID
             memory_type: Filter by memory type
-            
+
         Returns:
             List of matching memory entries
         """
         if self._table is None:
             raise RuntimeError("Memory store not initialized. Call initialize() first.")
-        
+
         # Generate query embedding
         if self._embedder is not None:
             query_vector = self._embedder.embed(query)
         else:
             # Fallback: zero vector (should not happen)
             query_vector = [0.0] * self.embedding_dim
-        
+
         # Build search (LanceDB async API)
         # search() is async and returns a coroutine
         search_builder = await self._table.search(query_vector)
-        
+
         # Apply filters
         if session_id:
             search_builder = search_builder.where(f"session_id = '{session_id}'")
         if memory_type:
             search_builder = search_builder.where(f"memory_type = '{memory_type}'")
-        
+
         # Execute search
         results = await search_builder.limit(limit).to_list()
-        
+
         # Convert to MemoryEntry objects
         entries = []
         for r in results:
@@ -232,42 +232,42 @@ class MemoryStore:
                 timestamp=datetime.fromisoformat(r["timestamp"]),
             )
             entries.append(entry)
-        
+
         return entries
-    
+
     async def get_by_session(
         self,
         session_id: str,
-        memory_type: Optional[str] = None,
+        memory_type: str | None = None,
         limit: int = 100,
-    ) -> List[MemoryEntry]:
+    ) -> list[MemoryEntry]:
         """Get all memories for a session.
-        
+
         Args:
             session_id: Session ID
             memory_type: Optional filter by type
             limit: Maximum results
-            
+
         Returns:
             List of memory entries
         """
         if self._table is None:
             raise RuntimeError("Memory store not initialized")
-        
+
         # Build query
         query = self._table.query().limit(limit)
-        
+
         # Apply filters
         filters = [f"session_id = '{session_id}'"]
         if memory_type:
             filters.append(f"memory_type = '{memory_type}'")
-        
+
         where_clause = " AND ".join(filters)
         query = query.where(where_clause)
-        
+
         # Execute
         results = await query.to_list()
-        
+
         return [
             MemoryEntry(
                 id=r["id"],
@@ -280,37 +280,37 @@ class MemoryStore:
             )
             for r in results
         ]
-    
+
     async def delete(self, entry_id: str) -> bool:
         """Delete a memory entry.
-        
+
         Args:
             entry_id: ID of entry to delete
-            
+
         Returns:
             True if deleted, False if not found
         """
         if self._table is None:
             raise RuntimeError("Memory store not initialized")
-        
+
         try:
             await self._table.delete(f"id = '{entry_id}'")
             return True
         except Exception:
             return False
-    
+
     async def clear_session(self, session_id: str) -> int:
         """Delete all memories for a session.
-        
+
         Args:
             session_id: Session ID to clear
-            
+
         Returns:
             Number of entries deleted
         """
         if self._table is None:
             raise RuntimeError("Memory store not initialized")
-        
+
         try:
             # Get count before delete
             before = len(await self._table.to_pandas())
@@ -319,16 +319,16 @@ class MemoryStore:
             return before - after
         except Exception:
             return 0
-    
-    async def get_stats(self) -> Dict[str, Any]:
+
+    async def get_stats(self) -> dict[str, Any]:
         """Get memory store statistics.
-        
+
         Returns:
             Dictionary with stats
         """
         if self._table is None:
             return {"error": "Not initialized"}
-        
+
         try:
             df = await self._table.to_pandas()
             return {
@@ -338,7 +338,7 @@ class MemoryStore:
             }
         except Exception as e:
             return {"error": str(e)}
-    
+
     async def close(self) -> None:
         """Close the memory store and release resources."""
         # LanceDB doesn't require explicit close, but we clean up references

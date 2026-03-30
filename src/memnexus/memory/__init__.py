@@ -15,9 +15,8 @@ Experimental Components (frozen in v1.0):
 """
 
 # Core memory system (stable)
-from memnexus.memory.store import MemoryStore, MemoryEntry
+from memnexus.memory.code import CodeMemoryExtractor, CodeSymbol
 from memnexus.memory.context import ContextManager
-from memnexus.memory.rag import RAGPipeline, Document, DocumentChunker
 
 # Sync features require: pip install redis
 # from memnexus.memory.sync import (
@@ -26,7 +25,6 @@ from memnexus.memory.rag import RAGPipeline, Document, DocumentChunker
 #     AgentMemoryBridge,
 #     SyncEvent,
 # )
-
 # Core types
 from memnexus.memory.core.types import (
     MemoryType,
@@ -34,8 +32,9 @@ from memnexus.memory.core.types import (
 )
 
 # Git and Code integration (Week 2-3)
-from memnexus.memory.git import GitMemoryExtractor, GitCommit
-from memnexus.memory.code import CodeMemoryExtractor, CodeSymbol
+from memnexus.memory.git import GitCommit, GitMemoryExtractor
+from memnexus.memory.rag import Document, DocumentChunker, RAGPipeline
+from memnexus.memory.store import MemoryEntry, MemoryStore
 
 __all__ = [
     # Core memory (stable)

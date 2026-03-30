@@ -2,8 +2,9 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum, auto
-from typing import Any, Dict, List, Optional
+from enum import Enum
+from typing import Any
+
 import numpy as np
 
 
@@ -51,16 +52,16 @@ class MemoryEntry:
 
     # Identifiers
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
-    session_id: Optional[str] = None
-    parent_id: Optional[str] = None  # For hierarchical relationships
+    session_id: str | None = None
+    parent_id: str | None = None  # For hierarchical relationships
 
     # Content metadata
     source: str = "system"
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    tags: List[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    tags: list[str] = field(default_factory=list)
 
     # Vector representation
-    embedding: Optional[np.ndarray] = None
+    embedding: np.ndarray | None = None
 
     # Importance and lifecycle (for intelligent forgetting)
     importance_score: float = 1.0  # 0.0 - 1.0
@@ -70,10 +71,10 @@ class MemoryEntry:
 
     # Compression info
     is_compressed: bool = False
-    original_length: Optional[int] = None
-    compression_ratio: Optional[float] = None
+    original_length: int | None = None
+    compression_ratio: float | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "id": self.id,
@@ -116,13 +117,13 @@ class MemoryEntry:
 class RetrievalResult:
     """Result from a retrieval operation."""
 
-    memories: List[MemoryEntry]
+    memories: list[MemoryEntry]
     strategy_used: RetrievalStrategy
     query_time_ms: float
     total_candidates: int
 
     # Source breakdown for hybrid retrieval
-    source_breakdown: Optional[Dict[str, int]] = None
+    source_breakdown: dict[str, int] | None = None
 
     # Confidence score
     confidence: float = 1.0
@@ -158,7 +159,7 @@ class UncertaintyEstimate:
     query: str
     entropy: float  # Shannon entropy of model's prediction
     confidence: float  # Model's confidence score
-    historical_accuracy: Optional[float] = None  # Accuracy on similar queries
+    historical_accuracy: float | None = None  # Accuracy on similar queries
 
     @property
     def needs_retrieval(self, threshold: float = 0.7) -> bool:
@@ -193,15 +194,15 @@ class Triple:
     relation: str
     obj: str  # 'object' is a reserved keyword in Python
     confidence: float = 1.0
-    source_text: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    source_text: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Validate confidence score."""
         if not 0.0 <= self.confidence <= 1.0:
             raise ValueError("Confidence must be between 0.0 and 1.0")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert triple to dictionary for serialization."""
         return {
             "subject": self.subject,
@@ -213,7 +214,7 @@ class Triple:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Triple":
+    def from_dict(cls, data: dict[str, Any]) -> "Triple":
         """Create triple from dictionary."""
         return cls(
             subject=data["subject"],

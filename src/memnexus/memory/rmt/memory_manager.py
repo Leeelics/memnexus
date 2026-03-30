@@ -5,9 +5,11 @@ Manages memory token flow across segments and provides streaming
 processing capabilities for sequences up to 2 million tokens.
 """
 
-from dataclasses import dataclass, field
-from typing import AsyncIterator, Callable, Dict, List, Optional, Any
 import asyncio
+from collections.abc import AsyncIterator, Callable
+from dataclasses import dataclass, field
+from typing import Any
+
 import numpy as np
 
 from memnexus.memory.rmt.segment_processor import Segment, SegmentProcessor
@@ -20,7 +22,7 @@ class MemoryState:
     memory_tokens: np.ndarray
     segment_id: int = 0
     cumulative_tokens: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def copy(self) -> "MemoryState":
         """Create a copy of the current state."""
@@ -91,7 +93,7 @@ class RecurrentMemoryManager:
         overlap_size: int = 128,
         memory_token_count: int = 16,
         hidden_dim: int = 768,
-        forward_fn: Optional[Callable[[np.ndarray], np.ndarray]] = None,
+        forward_fn: Callable[[np.ndarray], np.ndarray] | None = None,
     ):
         """
         Initialize recurrent memory manager.
@@ -117,13 +119,13 @@ class RecurrentMemoryManager:
         )
 
         self.forward_fn = forward_fn or self._default_forward
-        self._state_history: List[MemoryState] = []
+        self._state_history: list[MemoryState] = []
         self._lock = asyncio.Lock()
 
     def initialize_memory(
         self,
         batch_size: int = 1,
-        hidden_dim: Optional[int] = None,
+        hidden_dim: int | None = None,
     ) -> np.ndarray:
         """
         Initialize memory tokens for the first segment.
@@ -146,8 +148,8 @@ class RecurrentMemoryManager:
     async def process_segment(
         self,
         segment: Segment,
-        prev_memory: Optional[np.ndarray] = None,
-        state: Optional[MemoryState] = None,
+        prev_memory: np.ndarray | None = None,
+        state: MemoryState | None = None,
     ) -> SegmentResult:
         """
         Process a single segment with recurrent memory.
@@ -215,8 +217,8 @@ class RecurrentMemoryManager:
     async def process_long_sequence(
         self,
         tokens: np.ndarray,
-        initial_memory: Optional[np.ndarray] = None,
-        progress_callback: Optional[Callable[[int, int], None]] = None,
+        initial_memory: np.ndarray | None = None,
+        progress_callback: Callable[[int, int], None] | None = None,
     ) -> AsyncIterator[SegmentResult]:
         """
         Process a long sequence with streaming.
@@ -274,10 +276,10 @@ class RecurrentMemoryManager:
 
     async def process_batch_segments(
         self,
-        segments: List[Segment],
-        initial_memory: Optional[np.ndarray] = None,
+        segments: list[Segment],
+        initial_memory: np.ndarray | None = None,
         parallel: bool = False,
-    ) -> List[SegmentResult]:
+    ) -> list[SegmentResult]:
         """
         Process multiple segments (for curriculum learning).
 
@@ -308,7 +310,7 @@ class RecurrentMemoryManager:
 
             return results
 
-    def get_memory_history(self) -> List[MemoryState]:
+    def get_memory_history(self) -> list[MemoryState]:
         """
         Get history of memory states.
 
@@ -321,7 +323,7 @@ class RecurrentMemoryManager:
         """Clear memory state history."""
         self._state_history.clear()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """
         Get processing statistics.
 
@@ -354,7 +356,7 @@ class RecurrentMemoryManager:
         self,
         seq_len: int,
         batch_size: int = 1,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Estimate memory usage for processing a sequence.
 

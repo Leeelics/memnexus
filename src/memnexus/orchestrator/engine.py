@@ -5,16 +5,18 @@ manages task flow, and handles agent collaboration.
 """
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from memnexus.core.session import AgentRole, ExecutionStrategy
 
 
 class TaskState(str, Enum):
     """Task execution state."""
+
     PENDING = "pending"
     WAITING_FOR_DEPENDENCIES = "waiting_deps"
     READY = "ready"
@@ -31,24 +33,25 @@ class TaskState(str, Enum):
 @dataclass
 class OrchestrationTask:
     """Enhanced task for orchestration."""
+
     id: str
     name: str
     description: str
     role: AgentRole
     prompt: str
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     state: TaskState = TaskState.PENDING
-    assigned_agent: Optional[str] = None
+    assigned_agent: str | None = None
     result: Any = None
-    error: Optional[str] = None
+    error: str | None = None
     retry_count: int = 0
     max_retries: int = 3
     created_at: datetime = field(default_factory=datetime.utcnow)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -68,82 +71,88 @@ class OrchestrationTask:
 @dataclass
 class ExecutionPlan:
     """Execution plan for a session."""
+
     session_id: str
     strategy: ExecutionStrategy
-    tasks: List[OrchestrationTask] = field(default_factory=list)
-    phases: List[List[str]] = field(default_factory=list)  # Task IDs by phase
+    tasks: list[OrchestrationTask] = field(default_factory=list)
+    phases: list[list[str]] = field(default_factory=list)  # Task IDs by phase
     created_at: datetime = field(default_factory=datetime.utcnow)
-    
-    def get_task(self, task_id: str) -> Optional[OrchestrationTask]:
+
+    def get_task(self, task_id: str) -> OrchestrationTask | None:
         """Get task by ID."""
         for task in self.tasks:
             if task.id == task_id:
                 return task
         return None
-    
-    def get_ready_tasks(self) -> List[OrchestrationTask]:
+
+    def get_ready_tasks(self) -> list[OrchestrationTask]:
         """Get tasks that are ready to execute."""
         return [t for t in self.tasks if t.state == TaskState.READY]
-    
-    def get_completed_tasks(self) -> List[OrchestrationTask]:
+
+    def get_completed_tasks(self) -> list[OrchestrationTask]:
         """Get completed tasks."""
         return [t for t in self.tasks if t.state == TaskState.COMPLETED]
-    
+
     def calculate_progress(self) -> float:
         """Calculate execution progress (0.0 - 1.0)."""
         if not self.tasks:
             return 0.0
-        completed = len([t for t in self.tasks 
-                        if t.state in [TaskState.COMPLETED, TaskState.FAILED, TaskState.CANCELLED]])
+        completed = len(
+            [
+                t
+                for t in self.tasks
+                if t.state in [TaskState.COMPLETED, TaskState.FAILED, TaskState.CANCELLED]
+            ]
+        )
         return completed / len(self.tasks)
 
 
 class TaskExecutor:
     """Executes individual tasks with agents."""
-    
+
     def __init__(
         self,
-        on_progress: Optional[Callable[[str, Dict], None]] = None,
+        on_progress: Callable[[str, dict], None] | None = None,
     ):
         self.on_progress = on_progress
-        self._running_tasks: Dict[str, asyncio.Task] = {}
-    
+        self._running_tasks: dict[str, asyncio.Task] = {}
+
     async def execute(
         self,
         task: OrchestrationTask,
         agent_connection: Any,
-        context: Dict[str, Any],
+        context: dict[str, Any],
     ) -> bool:
         """Execute a task with an agent."""
         task.state = TaskState.RUNNING
         task.started_at = datetime.utcnow()
-        
+
         try:
             prompt = self._build_prompt(task, context)
             self._notify_progress(task.id, "started", {"prompt": prompt[:200]})
-            
+
             # Execute with agent
-            if hasattr(agent_connection, 'send_prompt'):
+            if hasattr(agent_connection, "send_prompt"):
                 result_parts = []
                 async for event in agent_connection.send_prompt(prompt):
                     if event.type.value == "message":
                         result_parts.append(event.data.get("message", ""))
-                
+
                 result = "\n".join(result_parts)
             else:
                 result = await self._execute_wrapper(agent_connection, prompt)
-            
+
             task.result = result
             task.state = TaskState.COMPLETED
             task.completed_at = datetime.utcnow()
-            
+
             self._notify_progress(task.id, "completed", {"result": result[:500]})
             return True
-            
+
         except Exception as e:
             task.error = str(e)
             task.retry_count += 1
-            
+
             if task.retry_count < task.max_retries:
                 task.state = TaskState.RETRYING
                 return False
@@ -152,32 +161,32 @@ class TaskExecutor:
                 task.completed_at = datetime.utcnow()
                 self._notify_progress(task.id, "failed", {"error": str(e)})
                 return False
-    
-    def _build_prompt(self, task: OrchestrationTask, context: Dict[str, Any]) -> str:
+
+    def _build_prompt(self, task: OrchestrationTask, context: dict[str, Any]) -> str:
         """Build execution prompt with context."""
         parts = [f"# Task: {task.name}\n"]
-        
+
         if task.description:
             parts.append(f"## Description\n{task.description}\n")
-        
+
         if context.get("previous_results"):
             parts.append("\n## Context from Previous Tasks\n")
             for prev_task_id, result in context["previous_results"].items():
                 parts.append(f"### {prev_task_id}\n{result[:500]}...\n")
-        
+
         parts.append(f"\n## Instructions\n{task.prompt}\n")
-        
+
         return "\n".join(parts)
-    
+
     async def _execute_wrapper(self, agent_connection: Any, prompt: str) -> str:
         """Execute via wrapper mode."""
         return f"[Wrapper execution] Prompt: {prompt[:100]}..."
-    
-    def _notify_progress(self, task_id: str, status: str, data: Dict) -> None:
+
+    def _notify_progress(self, task_id: str, status: str, data: dict) -> None:
         """Notify progress callback."""
         if self.on_progress:
             self.on_progress(task_id, {"status": status, **data})
-    
+
     async def cancel(self, task_id: str) -> None:
         """Cancel a running task."""
         if task_id in self._running_tasks:
@@ -191,28 +200,28 @@ class TaskExecutor:
 
 class OrchestratorEngine:
     """Multi-Agent Orchestration Engine."""
-    
+
     def __init__(self, session_manager: Any):
         self.session_manager = session_manager
-        self._plans: Dict[str, ExecutionPlan] = {}
-        self._executors: Dict[str, TaskExecutor] = {}
+        self._plans: dict[str, ExecutionPlan] = {}
+        self._executors: dict[str, TaskExecutor] = {}
         self._running: bool = False
-        self._callbacks: List[Callable[[str, Any], None]] = []
-    
+        self._callbacks: list[Callable[[str, Any], None]] = []
+
     async def initialize(self, session_id: str) -> None:
         """Initialize orchestrator for a session."""
         executor = TaskExecutor(
             on_progress=lambda tid, data: self._on_task_progress(session_id, tid, data)
         )
-        
+
         self._executors[session_id] = executor
         self._running = True
-    
+
     async def create_plan(
         self,
         session_id: str,
         strategy: ExecutionStrategy,
-        tasks: List[OrchestrationTask],
+        tasks: list[OrchestrationTask],
     ) -> ExecutionPlan:
         """Create an execution plan."""
         plan = ExecutionPlan(
@@ -220,32 +229,32 @@ class OrchestratorEngine:
             strategy=strategy,
             tasks=tasks,
         )
-        
+
         plan.phases = self._calculate_phases(tasks)
-        
+
         for task in tasks:
             if not task.dependencies:
                 task.state = TaskState.READY
             else:
                 task.state = TaskState.WAITING_FOR_DEPENDENCIES
-        
+
         self._plans[session_id] = plan
         return plan
-    
+
     async def execute_plan(
         self,
         plan: ExecutionPlan,
-        on_event: Optional[Callable[[str, Any], None]] = None,
+        on_event: Callable[[str, Any], None] | None = None,
     ) -> bool:
         """Execute an execution plan."""
         if on_event:
             self._callbacks.append(on_event)
-        
+
         session_id = plan.session_id
         executor = self._executors.get(session_id)
         if not executor:
             raise RuntimeError(f"Orchestrator not initialized for session {session_id}")
-        
+
         try:
             if plan.strategy == ExecutionStrategy.SEQUENTIAL:
                 return await self._execute_sequential(plan, executor)
@@ -260,7 +269,7 @@ class OrchestratorEngine:
         finally:
             if on_event:
                 self._callbacks.remove(on_event)
-    
+
     async def _execute_sequential(
         self,
         plan: ExecutionPlan,
@@ -270,23 +279,23 @@ class OrchestratorEngine:
         for task in plan.tasks:
             if not await self._wait_for_dependencies(plan, task):
                 return False
-            
+
             agent = await self._get_agent_for_task(plan.session_id, task)
             if not agent:
                 task.state = TaskState.FAILED
                 task.error = f"No agent available for role: {task.role}"
                 return False
-            
+
             context = self._build_context(plan, task)
             success = await executor.execute(task, agent, context)
-            
+
             if not success and task.state == TaskState.FAILED:
                 return False
-            
+
             await self._update_dependent_tasks(plan, task)
-        
+
         return True
-    
+
     async def _execute_parallel(
         self,
         plan: ExecutionPlan,
@@ -295,41 +304,38 @@ class OrchestratorEngine:
         """Execute tasks in parallel where possible."""
         completed_tasks = set()
         failed = False
-        
+
         while len(completed_tasks) < len(plan.tasks) and not failed:
             ready_tasks = [
-                t for t in plan.tasks
-                if t.state == TaskState.READY and t.id not in completed_tasks
+                t for t in plan.tasks if t.state == TaskState.READY and t.id not in completed_tasks
             ]
-            
+
             if not ready_tasks:
                 await asyncio.sleep(0.1)
                 continue
-            
+
             async def execute_task(task: OrchestrationTask) -> bool:
                 agent = await self._get_agent_for_task(plan.session_id, task)
                 if not agent:
                     task.state = TaskState.FAILED
                     return False
-                
+
                 context = self._build_context(plan, task)
                 success = await executor.execute(task, agent, context)
-                
+
                 if success:
                     completed_tasks.add(task.id)
                     await self._update_dependent_tasks(plan, task)
-                
+
                 return success or task.state != TaskState.FAILED
-            
-            results = await asyncio.gather(*[
-                execute_task(t) for t in ready_tasks
-            ])
-            
+
+            results = await asyncio.gather(*[execute_task(t) for t in ready_tasks])
+
             if not all(results):
                 failed = True
-        
+
         return not failed
-    
+
     async def _execute_with_review(
         self,
         plan: ExecutionPlan,
@@ -338,7 +344,7 @@ class OrchestratorEngine:
         """Execute with review cycles."""
         if not await self._execute_sequential(plan, executor):
             return False
-        
+
         review_tasks = []
         for task in plan.tasks:
             if task.state == TaskState.COMPLETED:
@@ -350,15 +356,15 @@ class OrchestratorEngine:
                     prompt=f"Review the following work:\n{task.result}",
                 )
                 review_tasks.append((task, review_task))
-        
+
         for original_task, review_task in review_tasks:
             agent = await self._get_agent_for_task(plan.session_id, review_task)
             if agent:
                 context = {"original_result": original_task.result}
                 await executor.execute(review_task, agent, context)
-        
+
         return True
-    
+
     async def _execute_auto(
         self,
         plan: ExecutionPlan,
@@ -366,12 +372,12 @@ class OrchestratorEngine:
     ) -> bool:
         """Auto-select execution strategy."""
         has_deps = any(t.dependencies for t in plan.tasks)
-        
+
         if has_deps:
             return await self._execute_parallel(plan, executor)
         else:
             return await self._execute_sequential(plan, executor)
-    
+
     async def _wait_for_dependencies(
         self,
         plan: ExecutionPlan,
@@ -381,9 +387,9 @@ class OrchestratorEngine:
         """Wait for task dependencies to complete."""
         if not task.dependencies:
             return True
-        
+
         start = datetime.utcnow()
-        
+
         while True:
             all_completed = True
             for dep_id in task.dependencies:
@@ -397,19 +403,21 @@ class OrchestratorEngine:
                     task.state = TaskState.CANCELLED
                     task.error = f"Dependency failed: {dep_id}"
                     return False
-            
+
             if all_completed:
                 return True
-            
+
             elapsed = (datetime.utcnow() - start).total_seconds()
             if elapsed > timeout:
                 task.state = TaskState.FAILED
                 task.error = "Timeout waiting for dependencies"
                 return False
-            
+
             await asyncio.sleep(0.1)
-    
-    async def _update_dependent_tasks(self, plan: ExecutionPlan, completed_task: OrchestrationTask) -> None:
+
+    async def _update_dependent_tasks(
+        self, plan: ExecutionPlan, completed_task: OrchestrationTask
+    ) -> None:
         """Update tasks that depend on the completed task."""
         for task in plan.tasks:
             if completed_task.id in task.dependencies:
@@ -419,59 +427,57 @@ class OrchestratorEngine:
                 )
                 if all_complete and task.state == TaskState.WAITING_FOR_DEPENDENCIES:
                     task.state = TaskState.READY
-    
-    def _calculate_phases(self, tasks: List[OrchestrationTask]) -> List[List[str]]:
+
+    def _calculate_phases(self, tasks: list[OrchestrationTask]) -> list[list[str]]:
         """Calculate execution phases based on dependencies."""
         if not tasks:
             return []
-        
+
         phases = []
         remaining = set(t.id for t in tasks)
         completed = set()
-        
+
         while remaining:
             ready = []
             for task_id in remaining:
                 task = next((t for t in tasks if t.id == task_id), None)
                 if task:
-                    deps_satisfied = all(
-                        dep in completed for dep in task.dependencies
-                    )
+                    deps_satisfied = all(dep in completed for dep in task.dependencies)
                     if deps_satisfied:
                         ready.append(task_id)
-            
+
             if not ready:
                 break
-            
+
             phases.append(ready)
             completed.update(ready)
             remaining.difference_update(ready)
-        
+
         return phases
-    
+
     async def _get_agent_for_task(
         self,
         session_id: str,
         task: OrchestrationTask,
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """Get or create an agent connection for a task."""
         session = await self.session_manager.get(session_id)
         if not session:
             return None
-        
+
         for agent in session.agents:
             if agent.config.role == task.role and agent.status.value == "idle":
                 return {"role": task.role, "agent_id": agent.id}
-        
+
         return None
-    
-    def _build_context(self, plan: ExecutionPlan, task: OrchestrationTask) -> Dict[str, Any]:
+
+    def _build_context(self, plan: ExecutionPlan, task: OrchestrationTask) -> dict[str, Any]:
         """Build execution context for a task."""
         context = {
             "session_id": plan.session_id,
             "strategy": plan.strategy.value,
         }
-        
+
         if task.dependencies:
             previous_results = {}
             for dep_id in task.dependencies:
@@ -479,10 +485,10 @@ class OrchestratorEngine:
                 if dep_task and dep_task.result:
                     previous_results[dep_id] = dep_task.result
             context["previous_results"] = previous_results
-        
+
         return context
-    
-    def _on_task_progress(self, session_id: str, task_id: str, data: Dict) -> None:
+
+    def _on_task_progress(self, session_id: str, task_id: str, data: dict) -> None:
         """Handle task progress updates."""
         event = {
             "type": "task_progress",
@@ -491,7 +497,7 @@ class OrchestratorEngine:
             "data": data,
             "timestamp": datetime.utcnow().isoformat(),
         }
-        
+
         for callback in self._callbacks:
             try:
                 if asyncio.iscoroutinefunction(callback):
@@ -500,28 +506,28 @@ class OrchestratorEngine:
                     callback(event)
             except Exception:
                 pass
-    
+
     async def pause(self, session_id: str) -> None:
         """Pause execution for a session."""
         pass
-    
+
     async def resume(self, session_id: str) -> None:
         """Resume execution for a session."""
         pass
-    
+
     async def cancel(self, session_id: str) -> None:
         """Cancel all tasks for a session."""
         executor = self._executors.get(session_id)
         if executor:
             for task_id in list(executor._running_tasks.keys()):
                 await executor.cancel(task_id)
-    
+
     async def close(self, session_id: str) -> None:
         """Close orchestrator for a session."""
         await self.cancel(session_id)
-        
+
         if session_id in self._executors:
             del self._executors[session_id]
-        
+
         if session_id in self._plans:
             del self._plans[session_id]

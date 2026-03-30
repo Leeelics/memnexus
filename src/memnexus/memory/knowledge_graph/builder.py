@@ -6,7 +6,7 @@ extracting (subject, relation, object) triples from text using LLM.
 
 import json
 import re
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Protocol
 
 from memnexus.memory.core.types import Triple
 
@@ -88,8 +88,8 @@ If no clear relationships can be extracted, return: {{"triples": []}}"""
 
     def __init__(
         self,
-        llm_client: Optional[LLMClient] = None,
-        extraction_prompt: Optional[str] = None,
+        llm_client: LLMClient | None = None,
+        extraction_prompt: str | None = None,
         confidence_threshold: float = 0.5,
     ):
         """Initialize the knowledge graph builder.
@@ -105,7 +105,7 @@ If no clear relationships can be extracted, return: {{"triples": []}}"""
         self.extraction_prompt = extraction_prompt or self.DEFAULT_PROMPT
         self.confidence_threshold = confidence_threshold
 
-    async def extract_triples(self, text: str) -> List[Triple]:
+    async def extract_triples(self, text: str) -> list[Triple]:
         """Extract triples from a single text using LLM.
 
         Uses the configured LLM client to perform open information extraction,
@@ -144,9 +144,9 @@ If no clear relationships can be extracted, return: {{"triples": []}}"""
 
     async def extract_triples_batch(
         self,
-        texts: List[str],
+        texts: list[str],
         batch_size: int = 10,
-    ) -> List[List[Triple]]:
+    ) -> list[list[Triple]]:
         """Extract triples from multiple texts in batches.
 
         Processes texts sequentially to avoid overwhelming the LLM API.
@@ -181,7 +181,7 @@ If no clear relationships can be extracted, return: {{"triples": []}}"""
 
         return results
 
-    def _parse_triples(self, response: str, source_text: Optional[str] = None) -> List[Triple]:
+    def _parse_triples(self, response: str, source_text: str | None = None) -> list[Triple]:
         """Parse LLM response into Triple objects.
 
         Attempts to extract JSON from the response, handling common
@@ -327,7 +327,7 @@ If no clear relationships can be extracted, return: {{"triples": []}}"""
 class OpenAIClient:
     """OpenAI API client wrapper for KnowledgeGraphBuilder."""
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o-mini"):
+    def __init__(self, api_key: str | None = None, model: str = "gpt-4o-mini"):
         """Initialize OpenAI client.
 
         Args:
@@ -358,7 +358,7 @@ class OpenAIClient:
 class AnthropicClient:
     """Anthropic API client wrapper for KnowledgeGraphBuilder."""
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-haiku-20240307"):
+    def __init__(self, api_key: str | None = None, model: str = "claude-3-haiku-20240307"):
         """Initialize Anthropic client.
 
         Args:

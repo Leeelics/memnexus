@@ -13,11 +13,11 @@ from memnexus.memory.layers.manager import (
 )
 
 __all__ = [
-    'AbstractMemoryLayer',
-    'Compressor',
-    'LLMCompressor',
-    'WorkingMemoryLayer',
-    'ShortTermMemoryLayer',
-    'LongTermMemoryLayer',
-    'HierarchicalMemoryManager',
+    "AbstractMemoryLayer",
+    "Compressor",
+    "LLMCompressor",
+    "WorkingMemoryLayer",
+    "ShortTermMemoryLayer",
+    "LongTermMemoryLayer",
+    "HierarchicalMemoryManager",
 ]

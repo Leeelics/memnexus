@@ -31,9 +31,9 @@ except ImportError:
 
 # Legacy exports (for backward compatibility)
 try:
-    from memnexus.memory import MemoryStore, MemoryEntry
-    from memnexus.memory.git import GitMemoryExtractor, GitCommit
+    from memnexus.memory import MemoryEntry, MemoryStore
     from memnexus.memory.code import CodeMemoryExtractor, CodeSymbol
+    from memnexus.memory.git import GitCommit, GitMemoryExtractor
 except ImportError:
     pass
 

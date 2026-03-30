@@ -8,9 +8,9 @@ Reference: "Beyond Attention: Breaking the Limits of Transformer Context Length
 with Recurrent Memory" (AAAI 2024)
 """
 
-from memnexus.memory.rmt.segment_processor import SegmentProcessor
-from memnexus.memory.rmt.memory_manager import RecurrentMemoryManager
 from memnexus.memory.rmt.curriculum import CurriculumLearning
+from memnexus.memory.rmt.memory_manager import RecurrentMemoryManager
+from memnexus.memory.rmt.segment_processor import SegmentProcessor
 
 __all__ = [
     "SegmentProcessor",
