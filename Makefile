@@ -1,42 +1,119 @@
-.PHONY: install dev test format lint clean build publish
+# MemNexus Makefile
+# Unified build commands for development and CI/CD
 
-# Installation
-install:
-	pip install -e .
+.DEFAULT_GOAL := help
 
-install-dev:
-	pip install -e ".[dev]"
+# Environment variables
+export NO_COLOR := 1
+export TERM := dumb
 
-# Development
-dev: install-dev
-	@echo "MemNexus development environment ready"
-	@echo "Run 'memnexus init' to initialize a project"
+.PHONY: help
+help: ## Show available make targets.
+	@echo "Available make targets:"
+	@awk 'BEGIN { FS = ":.*## " } /^[A-Za-z0-9_.-]+:.*## / { printf "  %-20s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
+# =============================================================================
+# Development Setup
+# =============================================================================
+
+.PHONY: install
+install: ## Install dependencies with uv.
+	@echo "==> Installing dependencies"
+	@uv sync --all-extras --dev
+
+.PHONY: update
+update: ## Update dependencies and lock file.
+	@echo "==> Updating dependencies"
+	@uv lock --upgrade
+	@uv sync --all-extras --dev
+
+# =============================================================================
+# Code Quality
+# =============================================================================
+
+.PHONY: format
+format: ## Auto-format code with ruff.
+	@echo "==> Formatting code"
+	@uv run ruff check --fix
+	@uv run ruff format
+
+.PHONY: format-check
+format-check: ## Check code formatting without making changes.
+	@echo "==> Checking code format"
+	@uv run ruff format --check
+
+.PHONY: lint
+lint: ## Run linting with ruff.
+	@echo "==> Running linter"
+	@uv run ruff check
+
+.PHONY: typecheck
+typecheck: ## Run type checking with mypy.
+	@echo "==> Running type checker"
+	@uv run mypy src/memnexus
+
+.PHONY: check
+check: format-check lint typecheck ## Run all code quality checks (format, lint, type).
+	@echo "==> All checks passed"
+
+# =============================================================================
 # Testing
-test:
-	pytest tests/ -v
+# =============================================================================
 
-# Code quality
-format:
-	ruff format src/ tests/
+.PHONY: test
+test: ## Run all tests with pytest.
+	@echo "==> Running tests"
+	@uv run pytest -vv
 
-lint:
-	ruff check src/ tests/
+.PHONY: test-cov
+test-cov: ## Run tests with coverage report.
+	@echo "==> Running tests with coverage"
+	@uv run pytest --cov=memnexus --cov-report=term-missing --cov-report=xml
 
-# Clean build artifacts
-clean:
-	rm -rf build/ dist/ *.egg-info
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
+.PHONY: test-ci
+test-ci: ## Run tests for CI (junit xml output).
+	@echo "==> Running tests (CI mode)"
+	@uv run pytest -vv --junitxml=junit.xml
 
-# Build package (using uv)
-build: clean
-	uv build
+# =============================================================================
+# Building
+# =============================================================================
 
-# Release to PyPI (requires UV_PUBLISH_TOKEN)
-publish: build
-	uv publish
+.PHONY: build
+build: ## Build package distributions (wheel and sdist).
+	@echo "==> Building package"
+	@uv build --no-sources --out-dir dist
 
-# Dry run publish (test without uploading)
-publish-dry-run: build
-	uv publish --dry-run
+.PHONY: build-check
+build-check: build ## Build and check distributions with twine.
+	@echo "==> Checking distributions"
+	@uvx twine check dist/*
+
+.PHONY: clean
+clean: ## Clean build artifacts.
+	@echo "==> Cleaning build artifacts"
+	@rm -rf dist/ .pytest_cache/ .mypy_cache/ .ruff_cache/
+	@find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	@find . -type f -name "*.pyc" -delete 2>/dev/null || true
+
+# =============================================================================
+# Version Management
+# =============================================================================
+
+.PHONY: version-check
+version-check: ## Check if version matches git tag (for releases).
+	@echo "==> Checking version"
+	@uv run scripts/check_version.py
+
+# =============================================================================
+# CI/CD Aliases
+# =============================================================================
+
+.PHONY: ci
+ci: install check test-ci ## Run full CI pipeline locally.
+	@echo "==> CI pipeline completed"
+
+.PHONY: release
+release: clean build-check ## Prepare for release (build and check).
+	@echo "==> Release build ready"
+	@ls -la dist/
