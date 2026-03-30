@@ -206,22 +206,18 @@ class MemoryStore:
             # Fallback: zero vector (should not happen)
             query_vector = [0.0] * self.embedding_dim
         
-        # Build search
-        search = self._table.search(query_vector).limit(limit)
+        # Build search (LanceDB async API)
+        # search() is async and returns a coroutine
+        search_builder = await self._table.search(query_vector)
         
         # Apply filters
-        filters = []
         if session_id:
-            filters.append(f"session_id = '{session_id}'")
+            search_builder = search_builder.where(f"session_id = '{session_id}'")
         if memory_type:
-            filters.append(f"memory_type = '{memory_type}'")
-        
-        if filters:
-            where_clause = " AND ".join(filters)
-            search = search.where(where_clause)
+            search_builder = search_builder.where(f"memory_type = '{memory_type}'")
         
         # Execute search
-        results = await search.to_list()
+        results = await search_builder.limit(limit).to_list()
         
         # Convert to MemoryEntry objects
         entries = []
@@ -342,3 +338,10 @@ class MemoryStore:
             }
         except Exception as e:
             return {"error": str(e)}
+    
+    async def close(self) -> None:
+        """Close the memory store and release resources."""
+        # LanceDB doesn't require explicit close, but we clean up references
+        self._table = None
+        self._db = None
+        self._embedder = None

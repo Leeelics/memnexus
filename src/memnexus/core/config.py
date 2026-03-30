@@ -4,30 +4,23 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseModel, Field
 
 
-class Settings(BaseSettings):
-    """Application settings."""
+class Settings(BaseModel):
+    """Application settings.
     
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
+    Uses environment variables with MEMNEXUS_ prefix.
+    """
     
     # App
     APP_NAME: str = "MemNexus"
-    APP_VERSION: str = "0.1.0"
-    DEBUG: bool = Field(default=False, validation_alias="MEMNEXUS_DEBUG")
-    ENV: str = Field(default="development", validation_alias="MEMNEXUS_ENV")
+    APP_VERSION: str = "0.3.0"
+    DEBUG: bool = Field(default=False)
+    ENV: str = Field(default="development")
     
     # Paths
-    DATA_DIR: Path = Field(
-        default=Path.home() / ".memnexus",
-        validation_alias="MEMNEXUS_DATA_DIR",
-    )
+    DATA_DIR: Path = Field(default=Path.home() / ".memnexus")
     
     @property
     def memory_dir(self) -> Path:
@@ -51,49 +44,40 @@ class Settings(BaseSettings):
         return path
     
     # Server
-    HOST: str = Field(default="127.0.0.1", validation_alias="MEMNEXUS_HOST")
-    PORT: int = Field(default=8080, validation_alias="MEMNEXUS_PORT")
-    
-    # Database
-    DATABASE_URL: str = Field(
-        default="postgresql+asyncpg://postgres:postgres@localhost:5432/memnexus",
-        validation_alias="MEMNEXUS_DATABASE_URL",
-    )
-    
-    # Redis
-    REDIS_URL: str = Field(
-        default="redis://localhost:6379/0",
-        validation_alias="MEMNEXUS_REDIS_URL",
-    )
+    HOST: str = Field(default="127.0.0.1")
+    PORT: int = Field(default=8080)
     
     # LanceDB
-    LANCEDB_URI: str = Field(
-        default="~/.memnexus/memory.lance",
-        validation_alias="MEMNEXUS_LANCEDB_URI",
-    )
+    LANCEDB_URI: str = Field(default="~/.memnexus/memory.lance")
     
     # Security
-    SECRET_KEY: str = Field(
-        default="change-me-in-production",
-        validation_alias="MEMNEXUS_SECRET_KEY",
-    )
+    SECRET_KEY: str = Field(default="change-me-in-production")
     
     # Agent settings
-    AGENT_TIMEOUT: int = Field(
-        default=300,
-        validation_alias="MEMNEXUS_AGENT_TIMEOUT",
-    )
-    AGENT_MAX_RETRIES: int = Field(
-        default=3,
-        validation_alias="MEMNEXUS_AGENT_MAX_RETRIES",
-    )
-    
-    # WebSocket
-    WS_HEARTBEAT_INTERVAL: int = 30
-    WS_MAX_CONNECTIONS: int = 100
+    AGENT_TIMEOUT: int = Field(default=300)
+    AGENT_MAX_RETRIES: int = Field(default=3)
     
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        # Load from environment variables with MEMNEXUS_ prefix
+        env_prefix = "MEMNEXUS_"
+        env_vars = {}
+        for key, value in os.environ.items():
+            if key.startswith(env_prefix):
+                # Remove prefix and convert to setting name
+                setting_name = key[len(env_prefix):]
+                # Convert to appropriate type
+                if value.lower() in ("true", "false"):
+                    env_vars[setting_name] = value.lower() == "true"
+                elif value.isdigit():
+                    env_vars[setting_name] = int(value)
+                else:
+                    env_vars[setting_name] = value
+        
+        # Override with kwargs
+        env_vars.update(kwargs)
+        
+        super().__init__(**env_vars)
+        
         # Ensure data directory exists
         self.DATA_DIR.mkdir(parents=True, exist_ok=True)
 
