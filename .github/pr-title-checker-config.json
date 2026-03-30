@@ -1,0 +1,33 @@
+{
+  "LABEL": {
+    "name": "invalid title",
+    "color": "f00020"
+  },
+  "CHECKS": {
+    "prefixes": [
+      "[WIP] ",
+      "feat: ",
+      "feature: ",
+      "fix: ",
+      "bugfix: ",
+      "docs: ",
+      "doc: ",
+      "style: ",
+      "refactor: ",
+      "perf: ",
+      "performance: ",
+      "test: ",
+      "tests: ",
+      "chore: ",
+      "ci: ",
+      "build: ",
+      "release: "
+    ],
+    "regexp": "^(Revert|revert|Merge|merge)"
+  },
+  "MESSAGES": {
+    "success": "✅ PR title is valid",
+    "failure": "❌ PR title does not follow the convention",
+    "notice": "PR title should start with a valid prefix like 'feat:', 'fix:', 'docs:', etc."
+  }
+}
