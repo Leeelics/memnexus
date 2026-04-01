@@ -139,8 +139,9 @@ class CodeParser:
 
         if language == "python":
             return self._parse_python_file(file_path)
+        elif language in ("javascript", "typescript"):
+            return self._parse_js_file(file_path, language)
         else:
-            # TODO: Add tree-sitter support for other languages
             return []
 
     def _parse_python_file(self, file_path: str) -> list[CodeSymbol]:
@@ -427,6 +428,130 @@ class CodeParser:
             pass
 
         return calls
+
+    def _parse_js_file(self, file_path: str, language: str) -> list[CodeSymbol]:
+        """Parse JavaScript/TypeScript file using regex-based extraction.
+
+        This is a lightweight parser for JS/TS without requiring tree-sitter.
+        For production use, consider adding tree-sitter-javascript.
+        """
+        symbols = []
+
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                source = f.read()
+                lines = source.split("\n")
+
+            # Pattern for function declarations
+            import re
+
+            # Match: function name(...) or async function name(...)
+            func_pattern = re.compile(
+                r'^(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\([^)]*\)',
+                re.MULTILINE
+            )
+
+            # Match: const name = (...) => or const name = function(...)
+            arrow_func_pattern = re.compile(
+                r'(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[^=]+)\s*=>',
+                re.MULTILINE
+            )
+
+            # Match: class Name
+            class_pattern = re.compile(
+                r'^(?:export\s+)?class\s+(\w+)(?:\s+extends\s+(\w+))?',
+                re.MULTILINE
+            )
+
+            # Match: method definitions inside classes
+            method_pattern = re.compile(
+                r'^(?:async\s+)?(\w+)\s*\([^)]*\)\s*\{',
+                re.MULTILINE
+            )
+
+            # Extract functions
+            for match in func_pattern.finditer(source):
+                name = match.group(1)
+                start_pos = match.start()
+                start_line = source[:start_pos].count('\n') + 1
+
+                # Find end of function (simplified - find closing brace)
+                brace_count = 0
+                end_line = start_line
+                found_open = False
+                for i, line in enumerate(lines[start_line - 1:], start=start_line):
+                    for char in line:
+                        if char == '{':
+                            brace_count += 1
+                            found_open = True
+                        elif char == '}':
+                            brace_count -= 1
+                            if found_open and brace_count == 0:
+                                end_line = i
+                                break
+                    if found_open and brace_count == 0:
+                        break
+
+                content = "\n".join(lines[start_line - 1:end_line])
+                signature = lines[start_line - 1].strip()
+
+                symbols.append(CodeSymbol(
+                    name=name,
+                    symbol_type="function",
+                    content=content,
+                    signature=signature,
+                    docstring=None,
+                    file_path=file_path,
+                    start_line=start_line,
+                    end_line=end_line,
+                    language=language,
+                    metadata={"is_async": "async" in signature},
+                ))
+
+            # Extract classes
+            for match in class_pattern.finditer(source):
+                name = match.group(1)
+                extends = match.group(2)
+                start_pos = match.start()
+                start_line = source[:start_pos].count('\n') + 1
+
+                # Find end of class
+                brace_count = 0
+                end_line = start_line
+                found_open = False
+                for i, line in enumerate(lines[start_line - 1:], start=start_line):
+                    for char in line:
+                        if char == '{':
+                            brace_count += 1
+                            found_open = True
+                        elif char == '}':
+                            brace_count -= 1
+                            if found_open and brace_count == 0:
+                                end_line = i
+                                break
+                    if found_open and brace_count == 0:
+                        break
+
+                content = "\n".join(lines[start_line - 1:end_line])
+                signature = lines[start_line - 1].strip()
+
+                symbols.append(CodeSymbol(
+                    name=name,
+                    symbol_type="class",
+                    content=content,
+                    signature=signature,
+                    docstring=None,
+                    file_path=file_path,
+                    start_line=start_line,
+                    end_line=end_line,
+                    language=language,
+                    metadata={"extends": extends} if extends else {},
+                ))
+
+        except Exception as e:
+            print(f"Warning: Failed to parse JS/TS file {file_path}: {e}")
+
+        return symbols
 
 
 class CodeChunker:
