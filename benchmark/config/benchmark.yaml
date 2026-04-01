@@ -1,0 +1,31 @@
+# MemNexus Benchmark Configuration
+
+# Benchmark settings
+settings:
+  random_seed: 42
+  num_runs: 3  # Number of runs for averaging results
+  warmup_runs: 1  # Warmup runs before actual benchmark
+
+# Dataset paths
+datasets:
+  synthetic_repos: "./datasets/synthetic_repos"
+  real_repos: "./datasets/real_repos"
+
+# Task-specific configuration
+tasks:
+  git_retrieval:
+    k_values: [1, 3, 5, 10]  # K values for Recall@K and Precision@K
+    
+  code_retrieval:
+    k_values: [1, 3, 5, 10]
+    symbol_types: ["function", "class", "method"]
+    
+  indexing:
+    batch_sizes: [10, 50, 100]
+    measure_memory: true
+
+# Output settings
+output:
+  results_dir: "./results"
+  formats: ["json", "html", "markdown"]
+  save_raw_results: true
