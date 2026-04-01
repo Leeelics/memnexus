@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-01
+
+### ✨ New Features
+
+- **File Watcher** - Real-time indexing with `memnexus watch`
+  - Auto-detect file changes and incrementally update index
+  - Support custom include/exclude patterns
+  - Monitor Python, JavaScript, TypeScript files by default
+  - Background watching with graceful shutdown
+
+- **Git Blame & Code Evolution** - Enhanced Git integration
+  - `blame_line()` - Get blame info for specific line
+  - `blame_file()` - Get blame for entire file
+  - `get_code_evolution()` - Track code changes over time
+  - Support function/class level evolution tracking
+
+- **Multi-language Support** - JavaScript/TypeScript parsing
+  - Parse JS/TS functions and classes
+  - Regex-based parsing without extra dependencies
+  - Auto-detect language from file extension
+
+### 🔧 Changes
+
+- **Fixed Deprecation Warnings** - Replaced datetime.utcnow() with timezone-aware datetime
+  - Reduced warnings from 112 to 65
+  - All datetime operations now use datetime.now(timezone.utc)
+
+- **Experimental Features Marked**
+  - memory.layers, memory.rmt, memory.knowledge_graph
+  - memory.compression, memory.retrieval
+  - Added DeprecationWarning to all experimental modules
+
 ## [Unreleased]
 
 ### ✨ New Features

@@ -1,6 +1,6 @@
 [project]
 name = "memnexus"
-version = "0.3.0"
+version = "0.4.0"
 description = "Code Memory for AI Programming Tools - Persistent memory for Kimi CLI, Claude Code, and other AI coding assistants"
 readme = "README.md"
 requires-python = ">=3.12"
