@@ -902,6 +902,53 @@ def server(
     start_server(project_path=str(project_path), host=host, port=port)
 
 
+@app.command()
+def watch(
+    path: str | None = typer.Option(".", "--path", "-p", help="Project path"),
+    include: str | None = typer.Option(None, "--include", "-i", help="Include patterns (comma-separated, e.g., '*.py,*.js')"),
+    exclude: str | None = typer.Option(None, "--exclude", "-e", help="Exclude patterns (comma-separated)"),
+):
+    """Watch files for changes and auto-index.
+
+    Monitors project files and automatically updates index when files change.
+
+    Examples:
+        memnexus watch                    # Watch current directory
+        memnexus watch --path ./project   # Watch specific project
+        memnexus watch --include '*.py'   # Only watch Python files
+    """
+    import asyncio
+
+    from memnexus.memory.watcher import FileWatcher
+
+    project_path = _get_project_path(path)
+
+    # Parse patterns
+    include_patterns = None
+    if include:
+        include_patterns = [p.strip() for p in include.split(",")]
+
+    exclude_patterns = None
+    if exclude:
+        exclude_patterns = [p.strip() for p in exclude.split(",")]
+
+    async def run_watch():
+        watcher = FileWatcher(
+            project_path=project_path,
+            include_patterns=include_patterns,
+            exclude_patterns=exclude_patterns,
+        )
+        try:
+            await watcher.start()
+        except KeyboardInterrupt:
+            await watcher.stop()
+
+    try:
+        asyncio.run(run_watch())
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Watch stopped[/yellow]")
+
+
 # Legacy commands (marked as deprecated)
 @app.command(hidden=True)
 def session_list():

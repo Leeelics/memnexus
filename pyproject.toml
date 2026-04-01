@@ -24,24 +24,21 @@ dependencies = [
     # Core
     "pydantic>=2.10.0",
     "pyyaml>=6.0.0",
-    
     # CLI
     "typer>=0.15.0",
     "rich>=13.9.0",
-    
     # Web API
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.34.0",
-    
     # Database
     "lancedb>=0.18.0",
     "pyarrow>=18.0",  # LanceDB dependency
-    
     # Git integration
     "gitpython>=3.1.0",
-    
     # Lightweight embedding
     "numpy>=1.24.0",
+    # File watching for real-time indexing
+    "watchfiles>=1.0.0",
 ]
 
 [project.optional-dependencies]

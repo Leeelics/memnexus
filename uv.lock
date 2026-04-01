@@ -953,6 +953,7 @@ dependencies = [
     { name = "rich" },
     { name = "typer" },
     { name = "uvicorn", extra = ["standard"] },
+    { name = "watchfiles" },
 ]
 
 [package.optional-dependencies]
@@ -1011,6 +1012,7 @@ requires-dist = [
     { name = "streamlit", marker = "extra == 'frontend'", specifier = ">=1.41.0" },
     { name = "typer", specifier = ">=0.15.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34.0" },
+    { name = "watchfiles", specifier = ">=1.0.0" },
 ]
 provides-extras = ["api", "sync", "full", "frontend"]
 
