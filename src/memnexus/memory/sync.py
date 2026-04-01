@@ -18,7 +18,7 @@ import asyncio
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from memnexus.memory.store import MemoryEntry, MemoryStore

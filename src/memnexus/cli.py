@@ -905,8 +905,12 @@ def server(
 @app.command()
 def watch(
     path: str | None = typer.Option(".", "--path", "-p", help="Project path"),
-    include: str | None = typer.Option(None, "--include", "-i", help="Include patterns (comma-separated, e.g., '*.py,*.js')"),
-    exclude: str | None = typer.Option(None, "--exclude", "-e", help="Exclude patterns (comma-separated)"),
+    include: str | None = typer.Option(
+        None, "--include", "-i", help="Include patterns (comma-separated, e.g., '*.py,*.js')"
+    ),
+    exclude: str | None = typer.Option(
+        None, "--exclude", "-e", help="Exclude patterns (comma-separated)"
+    ),
 ):
     """Watch files for changes and auto-index.
 
@@ -1057,7 +1061,9 @@ def session_explore(
     query: str = typer.Argument(..., help="Search query"),
     current_session: str = typer.Option("", "--current", "-c", help="Current session ID"),
     limit: int = typer.Option(5, "--limit", "-n", help="Max decisions to return"),
-    min_relevance: float = typer.Option(0.2, "--min-relevance", "-r", help="Minimum relevance (0.0-1.0)"),
+    min_relevance: float = typer.Option(
+        0.2, "--min-relevance", "-r", help="Minimum relevance (0.0-1.0)"
+    ),
 ):
     """Explore historical sessions for relevant decisions.
 
@@ -1085,8 +1091,10 @@ def session_explore(
                 return
 
             console.print(f"\n[bold]Exploration Results:[/bold] '{query}'\n")
-            console.print(f"Found [cyan]{len(result.decisions)}[/cyan] decisions from "
-                         f"[cyan]{len(result.explored_sessions)}[/cyan] sessions\n")
+            console.print(
+                f"Found [cyan]{len(result.decisions)}[/cyan] decisions from "
+                f"[cyan]{len(result.explored_sessions)}[/cyan] sessions\n"
+            )
 
             for i, decision in enumerate(result.decisions, 1):
                 console.print(

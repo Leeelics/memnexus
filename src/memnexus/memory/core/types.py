@@ -1,7 +1,7 @@
 """Core types and enums for memory system."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -94,12 +94,12 @@ class MemoryEntry:
     def access(self):
         """Record an access to this memory."""
         self.access_count += 1
-        self.last_accessed = datetime.now(timezone.utc)
+        self.last_accessed = datetime.now(UTC)
 
     @property
     def age_hours(self) -> float:
         """Get age in hours."""
-        return (datetime.now(timezone.utc) - self.created_at).total_seconds() / 3600
+        return (datetime.now(UTC) - self.created_at).total_seconds() / 3600
 
     @property
     def effective_importance(self) -> float:

@@ -2,8 +2,7 @@
 
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from memnexus.session.models import ScorerConfig
 
@@ -33,7 +32,7 @@ class RelevanceScorer:
         >>> print(f"Relevance: {score:.2f}")
     """
 
-    def __init__(self, config: Optional[ScorerConfig] = None):
+    def __init__(self, config: ScorerConfig | None = None):
         """Initialize with optional custom weights.
 
         Args:
@@ -45,7 +44,7 @@ class RelevanceScorer:
         self,
         session_data: SessionData | dict,
         query: str,
-        context: Optional[dict] = None,
+        context: dict | None = None,
     ) -> float:
         """Calculate relevance score.
 
@@ -69,9 +68,7 @@ class RelevanceScorer:
             return 0.0
 
         # Calculate keyword match score
-        keyword_score = self._calculate_keyword_score(
-            session_data.decisions, query_keywords
-        )
+        keyword_score = self._calculate_keyword_score(session_data.decisions, query_keywords)
 
         # Calculate project match bonus
         project_bonus = self._calculate_project_bonus(
@@ -83,18 +80,14 @@ class RelevanceScorer:
 
         # Combined score
         base_score = (
-            keyword_score * self.config.keyword_weight +
-            project_bonus * self.config.project_weight
+            keyword_score * self.config.keyword_weight + project_bonus * self.config.project_weight
         )
 
         # Apply time decay
         final_score = base_score * time_decay
 
         # Normalize to 0.0-1.0
-        max_possible = (
-            self.config.keyword_weight +
-            self.config.project_weight
-        )
+        max_possible = self.config.keyword_weight + self.config.project_weight
         normalized = min(1.0, final_score / max_possible if max_possible > 0 else 0)
 
         return normalized
@@ -110,18 +103,58 @@ class RelevanceScorer:
 
         # Filter short words and common stop words
         stop_words = {
-            "the", "a", "an", "is", "are", "was", "were", "be", "been",
-            "have", "has", "had", "do", "does", "did", "will", "would",
-            "could", "should", "may", "might", "must", "can", "to", "of",
-            "in", "for", "on", "with", "at", "by", "from", "as", "and",
-            "but", "or", "yet", "so", "it", "this", "that", "these",
-            "those", "i", "you", "he", "she", "we", "they",
+            "the",
+            "a",
+            "an",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "could",
+            "should",
+            "may",
+            "might",
+            "must",
+            "can",
+            "to",
+            "of",
+            "in",
+            "for",
+            "on",
+            "with",
+            "at",
+            "by",
+            "from",
+            "as",
+            "and",
+            "but",
+            "or",
+            "yet",
+            "so",
+            "it",
+            "this",
+            "that",
+            "these",
+            "those",
+            "i",
+            "you",
+            "he",
+            "she",
+            "we",
+            "they",
         }
 
-        keywords = [
-            w for w in words
-            if len(w) >= 3 and w not in stop_words
-        ]
+        keywords = [w for w in words if len(w) >= 3 and w not in stop_words]
 
         return keywords
 
@@ -191,11 +224,11 @@ class RelevanceScorer:
                 timestamp_str = timestamp_str[:-1] + "+00:00"
 
             timestamp = datetime.fromisoformat(timestamp_str)
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             # If timestamp has no timezone, assume UTC
             if timestamp.tzinfo is None:
-                timestamp = timestamp.replace(tzinfo=timezone.utc)
+                timestamp = timestamp.replace(tzinfo=UTC)
 
             age_days = (now - timestamp).total_seconds() / 86400
 

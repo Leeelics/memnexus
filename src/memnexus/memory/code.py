@@ -310,7 +310,7 @@ class CodeParser:
 
             # Build signature (similar to function)
             args = []
-            for i, arg in enumerate(node.args.args):
+            for _i, arg in enumerate(node.args.args):
                 arg_str = arg.arg
                 if arg.annotation:
                     arg_str += f": {ast.unparse(arg.annotation)}"
@@ -447,44 +447,30 @@ class CodeParser:
 
             # Match: function name(...) or async function name(...)
             func_pattern = re.compile(
-                r'^(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\([^)]*\)',
-                re.MULTILINE
-            )
-
-            # Match: const name = (...) => or const name = function(...)
-            arrow_func_pattern = re.compile(
-                r'(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[^=]+)\s*=>',
-                re.MULTILINE
+                r"^(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\([^)]*\)", re.MULTILINE
             )
 
             # Match: class Name
             class_pattern = re.compile(
-                r'^(?:export\s+)?class\s+(\w+)(?:\s+extends\s+(\w+))?',
-                re.MULTILINE
-            )
-
-            # Match: method definitions inside classes
-            method_pattern = re.compile(
-                r'^(?:async\s+)?(\w+)\s*\([^)]*\)\s*\{',
-                re.MULTILINE
+                r"^(?:export\s+)?class\s+(\w+)(?:\s+extends\s+(\w+))?", re.MULTILINE
             )
 
             # Extract functions
             for match in func_pattern.finditer(source):
                 name = match.group(1)
                 start_pos = match.start()
-                start_line = source[:start_pos].count('\n') + 1
+                start_line = source[:start_pos].count("\n") + 1
 
                 # Find end of function (simplified - find closing brace)
                 brace_count = 0
                 end_line = start_line
                 found_open = False
-                for i, line in enumerate(lines[start_line - 1:], start=start_line):
+                for i, line in enumerate(lines[start_line - 1 :], start=start_line):
                     for char in line:
-                        if char == '{':
+                        if char == "{":
                             brace_count += 1
                             found_open = True
-                        elif char == '}':
+                        elif char == "}":
                             brace_count -= 1
                             if found_open and brace_count == 0:
                                 end_line = i
@@ -492,39 +478,41 @@ class CodeParser:
                     if found_open and brace_count == 0:
                         break
 
-                content = "\n".join(lines[start_line - 1:end_line])
+                content = "\n".join(lines[start_line - 1 : end_line])
                 signature = lines[start_line - 1].strip()
 
-                symbols.append(CodeSymbol(
-                    name=name,
-                    symbol_type="function",
-                    content=content,
-                    signature=signature,
-                    docstring=None,
-                    file_path=file_path,
-                    start_line=start_line,
-                    end_line=end_line,
-                    language=language,
-                    metadata={"is_async": "async" in signature},
-                ))
+                symbols.append(
+                    CodeSymbol(
+                        name=name,
+                        symbol_type="function",
+                        content=content,
+                        signature=signature,
+                        docstring=None,
+                        file_path=file_path,
+                        start_line=start_line,
+                        end_line=end_line,
+                        language=language,
+                        metadata={"is_async": "async" in signature},
+                    )
+                )
 
             # Extract classes
             for match in class_pattern.finditer(source):
                 name = match.group(1)
                 extends = match.group(2)
                 start_pos = match.start()
-                start_line = source[:start_pos].count('\n') + 1
+                start_line = source[:start_pos].count("\n") + 1
 
                 # Find end of class
                 brace_count = 0
                 end_line = start_line
                 found_open = False
-                for i, line in enumerate(lines[start_line - 1:], start=start_line):
+                for i, line in enumerate(lines[start_line - 1 :], start=start_line):
                     for char in line:
-                        if char == '{':
+                        if char == "{":
                             brace_count += 1
                             found_open = True
-                        elif char == '}':
+                        elif char == "}":
                             brace_count -= 1
                             if found_open and brace_count == 0:
                                 end_line = i
@@ -532,21 +520,23 @@ class CodeParser:
                     if found_open and brace_count == 0:
                         break
 
-                content = "\n".join(lines[start_line - 1:end_line])
+                content = "\n".join(lines[start_line - 1 : end_line])
                 signature = lines[start_line - 1].strip()
 
-                symbols.append(CodeSymbol(
-                    name=name,
-                    symbol_type="class",
-                    content=content,
-                    signature=signature,
-                    docstring=None,
-                    file_path=file_path,
-                    start_line=start_line,
-                    end_line=end_line,
-                    language=language,
-                    metadata={"extends": extends} if extends else {},
-                ))
+                symbols.append(
+                    CodeSymbol(
+                        name=name,
+                        symbol_type="class",
+                        content=content,
+                        signature=signature,
+                        docstring=None,
+                        file_path=file_path,
+                        start_line=start_line,
+                        end_line=end_line,
+                        language=language,
+                        metadata={"extends": extends} if extends else {},
+                    )
+                )
 
         except Exception as e:
             print(f"Warning: Failed to parse JS/TS file {file_path}: {e}")

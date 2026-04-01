@@ -9,7 +9,7 @@ Implements MELODI-style memory hierarchy:
 
 import asyncio
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Protocol
 
 from memnexus.memory.core.types import MemoryEntry, MemoryLayer, RetrievalResult
@@ -181,7 +181,7 @@ class WorkingMemoryLayer(AbstractMemoryLayer):
                 overflow = self._memories.pop(0)
 
             self._memories.append(memory)
-            self._access_history[memory.id] = datetime.now(timezone.utc)
+            self._access_history[memory.id] = datetime.now(UTC)
 
             return overflow
 

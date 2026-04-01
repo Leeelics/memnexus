@@ -319,7 +319,7 @@ class TaskScheduler:
             # Same as parallel, but with review phase
             phases = self.graph._calculate_phases(list(self._tasks.values()))
             # Add review phase at the end
-            phases.append([f"review_{tid}" for tid in self._tasks.keys()])
+            phases.append([f"review_{tid}" for tid in self._tasks])
             return phases
 
         elif strategy == ExecutionStrategy.AUTO:

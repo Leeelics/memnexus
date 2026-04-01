@@ -3,8 +3,8 @@
 import json
 import sqlite3
 from abc import ABC, abstractmethod
+from datetime import UTC
 from pathlib import Path
-from typing import Any
 
 from memnexus.session.models import (
     DecisionFingerprint,
@@ -95,7 +95,7 @@ class JSONStorage(StorageBackend):
             "source_session": fingerprint.source_session,
             "content_preview": fingerprint.content_preview,
         }
-        data["metadata"]["updated_at"] = datetime.now(timezone.utc).isoformat()
+        data["metadata"]["updated_at"] = datetime.now(UTC).isoformat()
         self._save_json(self.fingerprints_file, data)
 
     def get_fingerprint(self, hash_str: str) -> DecisionFingerprint | None:
@@ -107,9 +107,7 @@ class JSONStorage(StorageBackend):
 
     def get_all_fingerprints(self) -> dict[str, DecisionFingerprint]:
         data = self._load_json(self.fingerprints_file)
-        return {
-            k: DecisionFingerprint(**v) for k, v in data["fingerprints"].items()
-        }
+        return {k: DecisionFingerprint(**v) for k, v in data["fingerprints"].items()}
 
     def save_exploration(self, record: ExplorationRecord) -> None:
         data = self._load_json(self.explorations_file)
@@ -131,9 +129,7 @@ class JSONStorage(StorageBackend):
 
     def get_all_explorations(self) -> dict[str, ExplorationRecord]:
         data = self._load_json(self.explorations_file)
-        return {
-            k: ExplorationRecord(**v) for k, v in data["explorations"].items()
-        }
+        return {k: ExplorationRecord(**v) for k, v in data["explorations"].items()}
 
     def close(self) -> None:
         pass  # JSON storage doesn't need explicit close
@@ -216,9 +212,7 @@ class SQLiteStorage(StorageBackend):
     def get_fingerprint(self, hash_str: str) -> DecisionFingerprint | None:
         try:
             with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute(
-                    "SELECT * FROM fingerprints WHERE hash = ?", (hash_str,)
-                )
+                cursor = conn.execute("SELECT * FROM fingerprints WHERE hash = ?", (hash_str,))
                 row = cursor.fetchone()
                 if row:
                     return self._dict_to_fingerprint(row)
@@ -230,10 +224,7 @@ class SQLiteStorage(StorageBackend):
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.execute("SELECT * FROM fingerprints")
-                return {
-                    row[0]: self._dict_to_fingerprint(row)
-                    for row in cursor.fetchall()
-                }
+                return {row[0]: self._dict_to_fingerprint(row) for row in cursor.fetchall()}
         except sqlite3.Error as e:
             raise StorageError(f"Failed to get fingerprints: {e}")
 
@@ -275,10 +266,7 @@ class SQLiteStorage(StorageBackend):
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.execute("SELECT * FROM explorations")
-                return {
-                    row[0]: self._dict_to_exploration(row)
-                    for row in cursor.fetchall()
-                }
+                return {row[0]: self._dict_to_exploration(row) for row in cursor.fetchall()}
         except sqlite3.Error as e:
             raise StorageError(f"Failed to get explorations: {e}")
 
@@ -311,5 +299,6 @@ def create_storage(
 
 
 # Import needed for JSONStorage
-from datetime import datetime, timezone  # noqa: E402
+from datetime import datetime  # noqa: E402
+
 from memnexus.session.models import ConfigurationError  # noqa: E402

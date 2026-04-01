@@ -1,8 +1,8 @@
 """Data models for Session Explorer."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 
 @dataclass
@@ -12,8 +12,8 @@ class Decision:
     content: str
     timestamp: str
     source_session: str
-    fingerprint: Optional[str] = None
-    metadata: Optional[dict[str, Any]] = None
+    fingerprint: str | None = None
+    metadata: dict[str, Any] | None = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -28,9 +28,7 @@ class ExplorationResult:
     explored_sessions: list[str]
     total_relevance: float
     query: str
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -40,7 +38,7 @@ class DuplicateCheckResult:
     is_duplicate: bool
     confidence: float
     similar_decisions: list[Decision]
-    fingerprint: Optional[str] = None
+    fingerprint: str | None = None
 
 
 @dataclass
@@ -108,19 +106,23 @@ class ExplorationRecord:
 # Error Types
 class SessionExplorerError(Exception):
     """Base exception for Session Explorer."""
+
     pass
 
 
 class StorageError(SessionExplorerError):
     """Storage operation failed."""
+
     pass
 
 
 class InvalidSessionError(SessionExplorerError):
     """Session data is invalid or corrupted."""
+
     pass
 
 
 class ConfigurationError(SessionExplorerError):
     """Invalid configuration."""
+
     pass

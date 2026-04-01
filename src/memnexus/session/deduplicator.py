@@ -1,15 +1,13 @@
 """Decision deduplication using semantic fingerprints."""
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 from memnexus.session.fingerprint import MinHashFingerprinter, create_fingerprint
 from memnexus.session.models import (
     Decision,
     DuplicateCheckResult,
-    DecisionFingerprint,
 )
 from memnexus.session.storage import StorageBackend, create_storage
 
@@ -34,8 +32,8 @@ class DecisionDeduplicator:
 
     def __init__(
         self,
-        storage_path: Optional[Path] = None,
-        config: Optional[DeduplicatorConfig] = None,
+        storage_path: Path | None = None,
+        config: DeduplicatorConfig | None = None,
         storage_backend: str = "auto",
     ):
         """Initialize the deduplicator.
@@ -50,15 +48,13 @@ class DecisionDeduplicator:
 
         self.storage_path = Path(storage_path)
         self.config = config or DeduplicatorConfig()
-        self.storage: StorageBackend = create_storage(
-            self.storage_path, storage_backend
-        )
+        self.storage: StorageBackend = create_storage(self.storage_path, storage_backend)
         self.fingerprinter = MinHashFingerprinter()
 
     async def check_duplicate(
         self,
         content: str,
-        context: Optional[dict] = None,
+        context: dict | None = None,
     ) -> DuplicateCheckResult:
         """Check if content is a duplicate.
 
@@ -88,10 +84,6 @@ class DecisionDeduplicator:
         similar_items = []
         max_similarity = 0.0
 
-        input_signature = self.fingerprinter._compute_minhash(
-            self.fingerprinter._get_shingles(content)
-        )
-
         for fp_hash, fingerprint in existing.items():
             # Reconstruct signature from stored fingerprint
             # For efficiency, we just compare keywords overlap
@@ -116,9 +108,7 @@ class DecisionDeduplicator:
 
         # Sort by similarity and take top N
         similar_items.sort(key=lambda x: -x[0])
-        top_similar = [
-            item for _, item in similar_items[: self.config.max_similar_items]
-        ]
+        top_similar = [item for _, item in similar_items[: self.config.max_similar_items]]
 
         # Determine if duplicate based on threshold
         is_duplicate = max_similarity >= self.config.similarity_threshold
@@ -161,7 +151,7 @@ class DecisionDeduplicator:
         self,
         content: str,
         source_session: str = "",
-        metadata: Optional[dict] = None,
+        metadata: dict | None = None,
     ) -> str:
         """Add a fingerprint for content.
 
@@ -173,7 +163,7 @@ class DecisionDeduplicator:
         Returns:
             The fingerprint hash
         """
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
 
         fingerprint = create_fingerprint(
             content=content,

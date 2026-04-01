@@ -4,8 +4,9 @@ Uses watchfiles to monitor project files and automatically update index.
 """
 
 import asyncio
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from watchfiles import Change, DefaultFilter, watch
 
@@ -130,7 +131,7 @@ class FileWatcher:
             elif change_type == Change.deleted:
                 deleted.append(path_str)
 
-        print(f"\n[FileWatcher] Detected changes:")
+        print("\n[FileWatcher] Detected changes:")
         if added:
             print(f"  Added: {len(added)} files")
         if modified:
@@ -177,7 +178,7 @@ class FileWatcher:
 
         print(f"[FileWatcher] Starting watch on {self.project_path}")
         print(f"  Include: {', '.join(self.include_patterns)}")
-        print(f"  Press Ctrl+C to stop\n")
+        print("  Press Ctrl+C to stop\n")
 
         self._stop_event.clear()
         self._watch_task = asyncio.create_task(self._watch_loop())

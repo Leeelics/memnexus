@@ -8,7 +8,7 @@ import asyncio
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -97,13 +97,13 @@ class InterventionPoint:
         """Check if intervention has expired."""
         if self.deadline is None:
             return False
-        return datetime.now(timezone.utc) > self.deadline
+        return datetime.now(UTC) > self.deadline
 
     def time_remaining(self) -> float | None:
         """Get time remaining in seconds."""
         if self.deadline is None:
             return None
-        remaining = (self.deadline - datetime.now(timezone.utc)).total_seconds()
+        remaining = (self.deadline - datetime.now(UTC)).total_seconds()
         return max(0, remaining)
 
 
@@ -265,7 +265,7 @@ class HumanInterventionSystem:
         """
         deadline = None
         if timeout:
-            deadline = datetime.now(timezone.utc) + __import__("datetime").timedelta(seconds=timeout)
+            deadline = datetime.now(UTC) + __import__("datetime").timedelta(seconds=timeout)
 
         point = InterventionPoint(
             type=InterventionType.APPROVAL,
@@ -450,7 +450,7 @@ class HumanInterventionSystem:
         else:
             point.status = InterventionStatus.APPROVED
 
-        point.resolved_at = datetime.now(timezone.utc)
+        point.resolved_at = datetime.now(UTC)
         point.resolved_by = resolved_by
         point.resolution = resolution
 
@@ -574,7 +574,7 @@ class HumanInterventionSystem:
             try:
                 await asyncio.sleep(5)  # Check every 5 seconds
 
-                now = datetime.now(timezone.utc)
+                now = datetime.now(UTC)
 
                 for point in list(self._interventions.values()):
                     # Check for expired interventions

@@ -284,9 +284,7 @@ class GitMemoryExtractor:
 
             # Get active branch
             active_branch = (
-                self._repo.active_branch.name
-                if self._repo.head.is_detached == False
-                else "detached"
+                self._repo.active_branch.name if not self._repo.head.is_detached else "detached"
             )
 
             # Get contributors
@@ -324,8 +322,6 @@ class GitMemoryExtractor:
             return None
 
         try:
-            from git import Blame
-
             # Get blame for the file
             blame_result = self._repo.blame("HEAD", file_path)
             if not blame_result:
@@ -334,7 +330,7 @@ class GitMemoryExtractor:
             # Find the line
             current_line = 0
             for commit, lines in blame_result:
-                for line in lines:
+                for _line in lines:
                     current_line += 1
                     if current_line == line_number:
                         return {
@@ -370,15 +366,17 @@ class GitMemoryExtractor:
             results = []
             line_number = 0
             for commit, lines in blame_result:
-                for line in lines:
+                for _line in lines:
                     line_number += 1
-                    results.append({
-                        "line_number": line_number,
-                        "commit_hash": commit.hexsha[:8],
-                        "author": commit.author.name,
-                        "date": commit.authored_datetime,
-                        "message": commit.message.strip().split("\n")[0],  # First line only
-                    })
+                    results.append(
+                        {
+                            "line_number": line_number,
+                            "commit_hash": commit.hexsha[:8],
+                            "author": commit.author.name,
+                            "date": commit.authored_datetime,
+                            "message": commit.message.strip().split("\n")[0],  # First line only
+                        }
+                    )
             return results
         except Exception as e:
             return [{"error": str(e)}]
@@ -415,17 +413,17 @@ class GitMemoryExtractor:
 
                     # Extract relevant code section
                     if function_name or class_name:
-                        content = self._extract_code_section(
-                            content, function_name, class_name
-                        )
+                        content = self._extract_code_section(content, function_name, class_name)
 
-                    evolution.append({
-                        "commit_hash": commit.hexsha[:8],
-                        "author": commit.author.name,
-                        "date": commit.authored_datetime,
-                        "message": commit.message.strip(),
-                        "content": content[:2000] if content else "",  # Limit content
-                    })
+                    evolution.append(
+                        {
+                            "commit_hash": commit.hexsha[:8],
+                            "author": commit.author.name,
+                            "date": commit.authored_datetime,
+                            "message": commit.message.strip(),
+                            "content": content[:2000] if content else "",  # Limit content
+                        }
+                    )
                 except Exception:
                     # File may not exist in this commit
                     continue

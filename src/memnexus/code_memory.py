@@ -499,7 +499,7 @@ class CodeMemory:
         # Filter for incremental indexing
         files_to_skip = set()
         if incremental and self._index_state:
-            for file_path in chunks_by_file.keys():
+            for file_path in chunks_by_file:
                 rel_path = file_path
                 if file_path.startswith(str(self.project_path)):
                     rel_path = str(Path(file_path).relative_to(self.project_path))

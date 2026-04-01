@@ -2,9 +2,8 @@
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 from memnexus.session.deduplicator import DecisionDeduplicator
 from memnexus.session.models import (
@@ -13,7 +12,6 @@ from memnexus.session.models import (
     ExplorationResult,
     ExplorationStats,
     ExplorerConfig,
-    SessionExplorerError,
 )
 from memnexus.session.scorer import RelevanceScorer, SessionData
 from memnexus.session.storage import StorageBackend, create_storage
@@ -44,8 +42,8 @@ class SessionExplorer:
 
     def __init__(
         self,
-        storage_path: Optional[Path] = None,
-        config: Optional[ExplorerConfig] = None,
+        storage_path: Path | None = None,
+        config: ExplorerConfig | None = None,
     ):
         """Initialize the SessionExplorer.
 
@@ -76,8 +74,8 @@ class SessionExplorer:
         self,
         current_session_id: str,
         query: str,
-        context: Optional[dict] = None,
-        options: Optional[ExploreOptions] = None,
+        context: dict | None = None,
+        options: ExploreOptions | None = None,
     ) -> ExplorationResult:
         """Explore historical sessions for relevant decisions.
 
@@ -105,8 +103,7 @@ class SessionExplorer:
         # Filter out already explored sessions
         if options.skip_explored:
             sessions = [
-                s for s in sessions
-                if not self.is_explored(s.session_id, current_session_id)
+                s for s in sessions if not self.is_explored(s.session_id, current_session_id)
             ]
 
         if not sessions:
@@ -155,7 +152,7 @@ class SessionExplorer:
 
                     decision = Decision(
                         content=decision_content,
-                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        timestamp=datetime.now(UTC).isoformat(),
                         source_session=session.session_id,
                         fingerprint=fingerprint,
                     )
@@ -200,7 +197,7 @@ class SessionExplorer:
                     timestamp=data.get("timestamp", ""),
                 )
                 sessions.append(session)
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 continue
 
         return sessions
@@ -237,7 +234,7 @@ class SessionExplorer:
         record = ExplorationRecord(
             session_id=session_id,
             explored_by=by_session,
-            explored_at=datetime.now(timezone.utc).isoformat(),
+            explored_at=datetime.now(UTC).isoformat(),
             relevance_score=relevance,
             decisions_extracted=decisions_count,
         )
@@ -247,7 +244,7 @@ class SessionExplorer:
     def is_explored(
         self,
         session_id: str,
-        by_session: Optional[str] = None,
+        by_session: str | None = None,
     ) -> bool:
         """Check if a session has been explored.
 
