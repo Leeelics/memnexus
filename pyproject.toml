@@ -85,6 +85,17 @@ include = [
     "src/memnexus/kimi_plugin/*.json",
     "src/memnexus/kimi_plugin/*.md",
 ]
+exclude = [
+    ".venv",
+    "venv",
+    "venv.bak",
+    "test_env",
+    ".pytest_cache",
+    "*.pyc",
+    "__pycache__",
+    ".git",
+    ".gitignore",
+]
 
 [tool.ruff]
 target-version = "py312"
