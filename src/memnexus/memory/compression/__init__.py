@@ -9,8 +9,7 @@
 import warnings
 
 warnings.warn(
-    "memory.compression is experimental and frozen in v1.0. "
-    "Not recommended for production use.",
+    "memory.compression is experimental and frozen in v1.0. Not recommended for production use.",
     DeprecationWarning,
     stacklevel=2,
 )

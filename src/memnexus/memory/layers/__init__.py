@@ -9,8 +9,7 @@
 import warnings
 
 warnings.warn(
-    "memory.layers is experimental and frozen in v1.0. "
-    "Use memory.store for stable functionality.",
+    "memory.layers is experimental and frozen in v1.0. Use memory.store for stable functionality.",
     DeprecationWarning,
     stacklevel=2,
 )

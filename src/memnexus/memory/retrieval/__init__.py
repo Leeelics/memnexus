@@ -9,8 +9,7 @@
 import warnings
 
 warnings.warn(
-    "memory.retrieval is experimental and frozen in v1.0. "
-    "Use memory.store for stable retrieval.",
+    "memory.retrieval is experimental and frozen in v1.0. Use memory.store for stable retrieval.",
     DeprecationWarning,
     stacklevel=2,
 )

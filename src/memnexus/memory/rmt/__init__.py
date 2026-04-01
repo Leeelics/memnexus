@@ -15,8 +15,7 @@ with Recurrent Memory" (AAAI 2024)
 import warnings
 
 warnings.warn(
-    "memory.rmt is experimental and frozen in v1.0. "
-    "Not recommended for production use.",
+    "memory.rmt is experimental and frozen in v1.0. Not recommended for production use.",
     DeprecationWarning,
     stacklevel=2,
 )
