@@ -88,3 +88,6 @@ research/
 # Sisyphus planning files (development only)
 .sisyphus/
 junit.xml
+
+# Benchmark results
+benchmark/results/
