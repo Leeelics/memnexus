@@ -13,6 +13,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from git import Repo
 from git.exc import InvalidGitRepositoryError
@@ -308,3 +309,165 @@ class GitMemoryExtractor:
     def is_valid(self) -> bool:
         """Check if the extractor has a valid Git repository."""
         return self._repo is not None
+
+    def blame_line(self, file_path: str, line_number: int) -> dict[str, Any] | None:
+        """Get blame information for a specific line.
+
+        Args:
+            file_path: Path to file
+            line_number: Line number (1-indexed)
+
+        Returns:
+            Blame info with commit, author, date
+        """
+        if not self._repo:
+            return None
+
+        try:
+            from git import Blame
+
+            # Get blame for the file
+            blame_result = self._repo.blame("HEAD", file_path)
+            if not blame_result:
+                return None
+
+            # Find the line
+            current_line = 0
+            for commit, lines in blame_result:
+                for line in lines:
+                    current_line += 1
+                    if current_line == line_number:
+                        return {
+                            "commit_hash": commit.hexsha[:8],
+                            "author": commit.author.name,
+                            "email": commit.author.email,
+                            "date": commit.authored_datetime,
+                            "message": commit.message.strip(),
+                            "line": line_number,
+                            "file": file_path,
+                        }
+            return None
+        except Exception as e:
+            return {"error": str(e)}
+
+    def blame_file(self, file_path: str) -> list[dict[str, Any]]:
+        """Get blame information for entire file.
+
+        Args:
+            file_path: Path to file
+
+        Returns:
+            List of blame info for each line
+        """
+        if not self._repo:
+            return []
+
+        try:
+            blame_result = self._repo.blame("HEAD", file_path)
+            if not blame_result:
+                return []
+
+            results = []
+            line_number = 0
+            for commit, lines in blame_result:
+                for line in lines:
+                    line_number += 1
+                    results.append({
+                        "line_number": line_number,
+                        "commit_hash": commit.hexsha[:8],
+                        "author": commit.author.name,
+                        "date": commit.authored_datetime,
+                        "message": commit.message.strip().split("\n")[0],  # First line only
+                    })
+            return results
+        except Exception as e:
+            return [{"error": str(e)}]
+
+    def get_code_evolution(
+        self,
+        file_path: str,
+        function_name: str | None = None,
+        class_name: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Track how code has evolved over time.
+
+        Args:
+            file_path: Path to file
+            function_name: Optional function name to track
+            class_name: Optional class name to track
+
+        Returns:
+            List of code versions with commit info
+        """
+        if not self._repo:
+            return []
+
+        try:
+            # Get file history
+            commits = list(self._repo.iter_commits(paths=file_path))
+
+            evolution = []
+            for commit in commits[:20]:  # Limit to recent 20 commits
+                try:
+                    # Get file content at this commit
+                    blob = commit.tree / file_path
+                    content = blob.data_stream.read().decode("utf-8", errors="replace")
+
+                    # Extract relevant code section
+                    if function_name or class_name:
+                        content = self._extract_code_section(
+                            content, function_name, class_name
+                        )
+
+                    evolution.append({
+                        "commit_hash": commit.hexsha[:8],
+                        "author": commit.author.name,
+                        "date": commit.authored_datetime,
+                        "message": commit.message.strip(),
+                        "content": content[:2000] if content else "",  # Limit content
+                    })
+                except Exception:
+                    # File may not exist in this commit
+                    continue
+
+            return evolution
+        except Exception as e:
+            return [{"error": str(e)}]
+
+    def _extract_code_section(
+        self,
+        content: str,
+        function_name: str | None = None,
+        class_name: str | None = None,
+    ) -> str:
+        """Extract function or class from code content."""
+        import re
+
+        lines = content.split("\n")
+        target = function_name or class_name
+        if not target:
+            return content
+
+        # Find the target definition
+        start_idx = None
+        for i, line in enumerate(lines):
+            if re.match(rf"^\s*(def|class)\s+{re.escape(target)}\b", line):
+                start_idx = i
+                break
+
+        if start_idx is None:
+            return ""
+
+        # Find end (next function/class at same or lower indentation)
+        base_indent = len(lines[start_idx]) - len(lines[start_idx].lstrip())
+        end_idx = len(lines)
+
+        for i in range(start_idx + 1, len(lines)):
+            line = lines[i]
+            if line.strip():
+                indent = len(line) - len(line.lstrip())
+                if indent <= base_indent and re.match(r"^\s*(def|class)\s+", line):
+                    end_idx = i
+                    break
+
+        return "\n".join(lines[start_idx:end_idx])
