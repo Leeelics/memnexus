@@ -28,6 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Regex-based parsing without extra dependencies
   - Auto-detect language from file extension
 
+- **Session Explorer** - Cross-session context discovery
+  - `memnexus session explore <query>` - Find relevant decisions from other sessions
+  - `memnexus session stats` - Show exploration statistics
+  - Semantic fingerprinting for decision deduplication
+  - Relevance scoring based on keywords, project, and time
+  - SQLite/JSON storage backends
+  - MinHash-based similarity detection
+
 ### 🔧 Changes
 
 - **Fixed Deprecation Warnings** - Replaced datetime.utcnow() with timezone-aware datetime

@@ -1047,6 +1047,88 @@ def install_plugin(
         raise typer.Exit(1)
 
 
+# Session Explorer commands
+session_app = typer.Typer(help="Session exploration commands")
+app.add_typer(session_app, name="session")
+
+
+@session_app.command("explore")
+def session_explore(
+    query: str = typer.Argument(..., help="Search query"),
+    current_session: str = typer.Option("", "--current", "-c", help="Current session ID"),
+    limit: int = typer.Option(5, "--limit", "-n", help="Max decisions to return"),
+    min_relevance: float = typer.Option(0.2, "--min-relevance", "-r", help="Minimum relevance (0.0-1.0)"),
+):
+    """Explore historical sessions for relevant decisions.
+
+    Examples:
+        memnexus session explore "database choice"
+        memnexus session explore "auth implementation" --limit 10
+    """
+    import asyncio
+
+    from memnexus.session import ExplorerConfig, SessionExplorer
+
+    async def do_explore():
+        config = ExplorerConfig()
+        explorer = SessionExplorer(config=config)
+
+        try:
+            result = await explorer.explore_related(
+                current_session_id=current_session,
+                query=query,
+                limit=limit,
+            )
+
+            if not result.decisions:
+                console.print("[yellow]No relevant decisions found.[/yellow]")
+                return
+
+            console.print(f"\n[bold]Exploration Results:[/bold] '{query}'\n")
+            console.print(f"Found [cyan]{len(result.decisions)}[/cyan] decisions from "
+                         f"[cyan]{len(result.explored_sessions)}[/cyan] sessions\n")
+
+            for i, decision in enumerate(result.decisions, 1):
+                console.print(
+                    Panel(
+                        f"[bold]{decision.content[:200]}[/bold]\n\n"
+                        f"[dim]Source: {decision.source_session}[/dim]",
+                        title=f"#{i}",
+                        border_style="blue",
+                    )
+                )
+
+        except Exception as e:
+            console.print(f"[red]Exploration failed: {e}[/red]")
+        finally:
+            explorer.close()
+
+    asyncio.run(do_explore())
+
+
+@session_app.command("stats")
+def session_stats():
+    """Show session exploration statistics."""
+    from memnexus.session import SessionExplorer
+
+    explorer = SessionExplorer()
+    stats = explorer.get_stats()
+
+    console.print(
+        Panel.fit(
+            f"[bold]Session Explorer Statistics[/bold]\n\n"
+            f"Explored Sessions: [cyan]{stats.total_explored_sessions}[/cyan]\n"
+            f"Unique Decisions: [cyan]{stats.total_unique_decisions}[/cyan]\n"
+            f"Known Keywords: [cyan]{stats.known_keywords_count}[/cyan]\n"
+            f"Available Sessions: [cyan]{stats.available_session_files}[/cyan]",
+            title="Stats",
+            border_style="green",
+        )
+    )
+
+    explorer.close()
+
+
 def main() -> None:
     """CLI entry point."""
     app()
