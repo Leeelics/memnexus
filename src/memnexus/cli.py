@@ -868,7 +868,7 @@ def global_unregister(
 def server(
     path: str | None = typer.Option(".", "--path", "-p", help="Project path"),
     host: str = typer.Option("127.0.0.1", "--host", "-h", help="Host to bind to"),
-    port: int = typer.Option(8080, "--port", "-p", help="Port to bind to"),
+    port: int = typer.Option(8080, "--port", "-P", help="Port to bind to"),
 ):
     """Start MemNexus API server.
 
