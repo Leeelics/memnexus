@@ -1,25 +1,31 @@
-"""Knowledge graph module for HippoRAG-style memory enhancement.
+"""Knowledge Graph integration for MemNexus.
 
-This module provides tools for building and managing knowledge graphs
-using LLM-based open information extraction, enabling multi-hop
-reasoning for RAG applications.
-
-Example:
-    >>> from memnexus.memory.knowledge_graph import KnowledgeGraphBuilder
-    >>> builder = KnowledgeGraphBuilder(llm_client=client)
-    >>> triples = await builder.extract_triples("Python is a programming language.")
+.. warning::
+    EXPERIMENTAL - Frozen in v1.0
+    This module contains experimental features that are not actively maintained.
+    These features are research-oriented (HippoRAG-inspired) and not recommended
+    for production use.
 """
 
+import warnings
+
+warnings.warn(
+    "memory.knowledge_graph is experimental and frozen in v1.0. "
+    "Not recommended for production use.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 from memnexus.memory.knowledge_graph.builder import (
-    AnthropicClient,
     KnowledgeGraphBuilder,
-    LLMClient,
-    OpenAIClient,
+    KnowledgeGraphConfig,
+    KnowledgeNode,
+    KnowledgeRelation,
 )
 
 __all__ = [
-    "AnthropicClient",
     "KnowledgeGraphBuilder",
-    "LLMClient",
-    "OpenAIClient",
+    "KnowledgeGraphConfig",
+    "KnowledgeNode",
+    "KnowledgeRelation",
 ]
