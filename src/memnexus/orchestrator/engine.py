@@ -7,7 +7,7 @@ manages task flow, and handles agent collaboration.
 import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -125,7 +125,7 @@ class TaskExecutor:
     ) -> bool:
         """Execute a task with an agent."""
         task.state = TaskState.RUNNING
-        task.started_at = datetime.utcnow()
+        task.started_at = datetime.now(timezone.utc)
 
         try:
             prompt = self._build_prompt(task, context)
@@ -144,7 +144,7 @@ class TaskExecutor:
 
             task.result = result
             task.state = TaskState.COMPLETED
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(timezone.utc)
 
             self._notify_progress(task.id, "completed", {"result": result[:500]})
             return True
@@ -158,7 +158,7 @@ class TaskExecutor:
                 return False
             else:
                 task.state = TaskState.FAILED
-                task.completed_at = datetime.utcnow()
+                task.completed_at = datetime.now(timezone.utc)
                 self._notify_progress(task.id, "failed", {"error": str(e)})
                 return False
 
@@ -388,7 +388,7 @@ class OrchestratorEngine:
         if not task.dependencies:
             return True
 
-        start = datetime.utcnow()
+        start = datetime.now(timezone.utc)
 
         while True:
             all_completed = True
@@ -407,7 +407,7 @@ class OrchestratorEngine:
             if all_completed:
                 return True
 
-            elapsed = (datetime.utcnow() - start).total_seconds()
+            elapsed = (datetime.now(timezone.utc) - start).total_seconds()
             if elapsed > timeout:
                 task.state = TaskState.FAILED
                 task.error = "Timeout waiting for dependencies"
@@ -495,7 +495,7 @@ class OrchestratorEngine:
             "session_id": session_id,
             "task_id": task_id,
             "data": data,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         for callback in self._callbacks:

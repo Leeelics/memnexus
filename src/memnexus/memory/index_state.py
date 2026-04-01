@@ -6,7 +6,7 @@ Tracks what has been indexed to enable incremental updates.
 import hashlib
 import json
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -49,8 +49,8 @@ class IndexState:
 
     # Metadata
     last_full_index: str | None = None
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
@@ -86,8 +86,8 @@ class IndexState:
             git_state=git_state,
             file_states=file_states,
             last_full_index=data.get("last_full_index"),
-            created_at=data.get("created_at", datetime.utcnow().isoformat()),
-            updated_at=data.get("updated_at", datetime.utcnow().isoformat()),
+            created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
+            updated_at=data.get("updated_at", datetime.now(timezone.utc).isoformat()),
         )
 
 
@@ -133,7 +133,7 @@ class IndexStateManager:
             return
 
         # Update timestamp
-        self._state.updated_at = datetime.utcnow().isoformat()
+        self._state.updated_at = datetime.now(timezone.utc).isoformat()
 
         # Ensure directory exists
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
@@ -190,7 +190,7 @@ class IndexStateManager:
             path=file_path,
             last_modified=full_path.stat().st_mtime,
             content_hash=content_hash,
-            indexed_at=datetime.utcnow().isoformat(),
+            indexed_at=datetime.now(timezone.utc).isoformat(),
             symbol_count=symbol_count,
         )
 

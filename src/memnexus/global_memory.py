@@ -20,7 +20,7 @@ Example:
 
 import json
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -34,7 +34,7 @@ class ProjectInfo:
     name: str
     path: str
     description: str | None = None
-    registered_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    registered_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     last_synced: str | None = None
     git_url: str | None = None
     tags: list[str] = field(default_factory=list)
@@ -95,7 +95,7 @@ class GlobalMemoryConfig:
         data = {
             "config": self._config,
             "projects": {name: info.to_dict() for name, info in self._projects.items()},
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Atomic write
@@ -147,7 +147,7 @@ class GlobalMemoryConfig:
     def update_last_synced(self, name: str) -> None:
         """Update last synced timestamp."""
         if name in self._projects:
-            self._projects[name].last_synced = datetime.utcnow().isoformat()
+            self._projects[name].last_synced = datetime.now(timezone.utc).isoformat()
             self.save()
 
 

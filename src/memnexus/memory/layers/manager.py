@@ -6,7 +6,7 @@ Implements MELODI-style compression flow and intelligent memory lifecycle.
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 from memnexus.memory.core.types import MemoryEntry, MemoryLayer, RetrievalResult, RetrievalStrategy
@@ -177,7 +177,7 @@ class LongTermMemoryLayer(AbstractMemoryLayer):
     async def cleanup(self, max_age_days: int = 30):
         """Remove old, low-importance memories."""
         async with self._lock:
-            cutoff = datetime.utcnow() - timedelta(days=max_age_days)
+            cutoff = datetime.now(timezone.utc) - timedelta(days=max_age_days)
 
             self._memories = [
                 m for m in self._memories if m.created_at > cutoff or m.importance_score > 0.7

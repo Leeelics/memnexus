@@ -2,7 +2,7 @@
 
 import asyncio
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -244,7 +244,7 @@ class SessionManager:
             return False
 
         session.status = status
-        session.updated_at = datetime.utcnow()
+        session.updated_at = datetime.now(timezone.utc)
         return True
 
     async def delete(self, session_id: str) -> bool:
