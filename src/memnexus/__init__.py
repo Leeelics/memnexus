@@ -12,30 +12,25 @@ Quick Start:
 For more information, see: https://github.com/Leeelics/MemNexus
 """
 
+import contextlib
+
 __version__ = "0.4.0"
 __author__ = "Leeelics"
 __license__ = "MIT"
 
 # Main entry point
-try:
+with contextlib.suppress(ImportError):
     from memnexus.code_memory import CodeMemory, SearchResult
-except ImportError:
-    # Dependencies not installed
-    pass
 
 # Global memory (cross-project)
-try:
+with contextlib.suppress(ImportError):
     from memnexus.global_memory import GlobalMemory, GlobalSearchResult, ProjectInfo
-except ImportError:
-    pass
 
 # Legacy exports (for backward compatibility)
-try:
+with contextlib.suppress(ImportError):
     from memnexus.memory import MemoryEntry, MemoryStore
     from memnexus.memory.code import CodeMemoryExtractor, CodeSymbol
     from memnexus.memory.git import GitCommit, GitMemoryExtractor
-except ImportError:
-    pass
 
 __all__ = [
     # Main API

@@ -74,7 +74,7 @@ class JSONStorage(StorageBackend):
             with open(file_path, encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, FileNotFoundError) as e:
-            raise StorageError(f"Failed to load {file_path}: {e}")
+            raise StorageError(f"Failed to load {file_path}: {e}") from e
 
     def _save_json(self, file_path: Path, data: dict) -> None:
         """Save JSON to file atomically."""
@@ -84,7 +84,7 @@ class JSONStorage(StorageBackend):
                 json.dump(data, f, indent=2)
             temp_file.rename(file_path)
         except Exception as e:
-            raise StorageError(f"Failed to save {file_path}: {e}")
+            raise StorageError(f"Failed to save {file_path}: {e}") from e
 
     def save_fingerprint(self, fingerprint: DecisionFingerprint) -> None:
         data = self._load_json(self.fingerprints_file)
@@ -207,7 +207,7 @@ class SQLiteStorage(StorageBackend):
                 )
                 conn.commit()
         except sqlite3.Error as e:
-            raise StorageError(f"Failed to save fingerprint: {e}")
+            raise StorageError(f"Failed to save fingerprint: {e}") from e
 
     def get_fingerprint(self, hash_str: str) -> DecisionFingerprint | None:
         try:
@@ -218,7 +218,7 @@ class SQLiteStorage(StorageBackend):
                     return self._dict_to_fingerprint(row)
                 return None
         except sqlite3.Error as e:
-            raise StorageError(f"Failed to get fingerprint: {e}")
+            raise StorageError(f"Failed to get fingerprint: {e}") from e
 
     def get_all_fingerprints(self) -> dict[str, DecisionFingerprint]:
         try:
@@ -226,7 +226,7 @@ class SQLiteStorage(StorageBackend):
                 cursor = conn.execute("SELECT * FROM fingerprints")
                 return {row[0]: self._dict_to_fingerprint(row) for row in cursor.fetchall()}
         except sqlite3.Error as e:
-            raise StorageError(f"Failed to get fingerprints: {e}")
+            raise StorageError(f"Failed to get fingerprints: {e}") from e
 
     def save_exploration(self, record: ExplorationRecord) -> None:
         try:
@@ -247,7 +247,7 @@ class SQLiteStorage(StorageBackend):
                 )
                 conn.commit()
         except sqlite3.Error as e:
-            raise StorageError(f"Failed to save exploration: {e}")
+            raise StorageError(f"Failed to save exploration: {e}") from e
 
     def get_exploration(self, session_id: str) -> ExplorationRecord | None:
         try:
@@ -260,7 +260,7 @@ class SQLiteStorage(StorageBackend):
                     return self._dict_to_exploration(row)
                 return None
         except sqlite3.Error as e:
-            raise StorageError(f"Failed to get exploration: {e}")
+            raise StorageError(f"Failed to get exploration: {e}") from e
 
     def get_all_explorations(self) -> dict[str, ExplorationRecord]:
         try:
@@ -268,7 +268,7 @@ class SQLiteStorage(StorageBackend):
                 cursor = conn.execute("SELECT * FROM explorations")
                 return {row[0]: self._dict_to_exploration(row) for row in cursor.fetchall()}
         except sqlite3.Error as e:
-            raise StorageError(f"Failed to get explorations: {e}")
+            raise StorageError(f"Failed to get explorations: {e}") from e
 
     def close(self) -> None:
         pass  # SQLite connections are context-managed

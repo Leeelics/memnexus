@@ -87,3 +87,4 @@ research/
 
 # Sisyphus planning files (development only)
 .sisyphus/
+junit.xml
