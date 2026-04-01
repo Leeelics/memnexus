@@ -273,7 +273,6 @@ def index(
                 console.print("Indexing Git history...")
                 result = await memory.index_git_history(limit=limit, incremental=incremental)
                 indexed = result.get("commits_indexed", 0)
-                total = result.get("total_commits", 0)
                 skipped = result.get("skipped", False)
 
                 if indexed > 0:
@@ -409,7 +408,7 @@ def search(
                 for r in results:
                     meta = r.metadata or {}
                     symbol_name = meta.get("symbol_name", "Unknown")
-                    symbol_type = meta.get("symbol_type", "unknown")
+                    result_symbol_type = meta.get("symbol_type", "unknown")
                     file_path = meta.get("file_path", "unknown")
                     line = meta.get("start_line", 0)
 
@@ -428,7 +427,7 @@ def search(
 
                     console.print(
                         Panel(
-                            f"[bold]{symbol_name}[/bold] [yellow]({symbol_type})[/yellow]\n"
+                            f"[bold]{symbol_name}[/bold] [yellow]({result_symbol_type})[/yellow]\n"
                             f"[dim]{file_path}:{line}[/dim]\n\n"
                             f"{content}",
                             border_style="green",

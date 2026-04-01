@@ -60,7 +60,7 @@ Summary:"""
 
             try:
                 summary = await self.llm_client.generate(prompt, max_tokens=500)
-            except:
+            except Exception:
                 # Fallback to truncation
                 summary = combined[:2000] + "..."
         else:

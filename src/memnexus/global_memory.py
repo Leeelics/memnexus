@@ -341,9 +341,6 @@ class GlobalMemory:
         memories_added = 0
         errors = []
 
-        # Get existing memories to avoid duplicates
-        existing_hashes = await self._get_existing_hashes(name)
-
         try:
             if code:
                 # Sync code symbols

@@ -9,6 +9,7 @@ Example:
     >>> results = await memory.search("login authentication")
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -162,7 +163,7 @@ class CodeMemory:
         self,
         limit: int = 1000,
         file_path: str | None = None,
-        progress_callback: callable | None = None,
+        progress_callback: Callable | None = None,
         incremental: bool = True,
     ) -> dict[str, Any]:
         """Index Git commit history into memory.
@@ -450,7 +451,7 @@ class CodeMemory:
         languages: list[str] | None = None,
         file_patterns: list[str] | None = None,
         exclude_patterns: list[str] | None = None,
-        progress_callback: callable | None = None,
+        progress_callback: Callable | None = None,
         incremental: bool = True,
     ) -> dict[str, Any]:
         """Index codebase structure into memory.

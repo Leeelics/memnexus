@@ -96,7 +96,6 @@ class AdaptiveRetriever:
             Overall complexity score (0-1) and breakdown by factor.
         """
         scores = {}
-        query_lower = query.lower()
 
         # Length factor (longer queries tend to be more complex)
         word_count = len(query.split())

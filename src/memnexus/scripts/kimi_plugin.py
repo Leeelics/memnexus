@@ -199,9 +199,6 @@ async def main():
     store_parser.add_argument("--category", default="finding")
     store_parser.add_argument("--tags", nargs="*", default=[])
 
-    # Status command
-    status_parser = subparsers.add_parser("status", help="Get status")
-
     # Index command
     index_parser = subparsers.add_parser("index", help="Index project")
     index_parser.add_argument("--git", action="store_true", default=True)

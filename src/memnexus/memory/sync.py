@@ -274,8 +274,6 @@ class MemorySyncManager:
 
     async def _sync_loop(self, interval: float) -> None:
         """Background sync loop."""
-        last_check = datetime.utcnow()
-
         while True:
             try:
                 await asyncio.sleep(interval)
@@ -283,7 +281,6 @@ class MemorySyncManager:
                 # Get new memories since last check
                 # This is a placeholder - actual implementation would
                 # query by timestamp
-                last_check = datetime.utcnow()
 
             except asyncio.CancelledError:
                 break

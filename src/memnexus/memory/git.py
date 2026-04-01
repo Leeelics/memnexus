@@ -90,16 +90,12 @@ class GitMemoryExtractor:
                 # Determine file path
                 if diff_item.new_file:
                     file_path = diff_item.b_path or diff_item.a_path
-                    change_type = "A"
                 elif diff_item.deleted_file:
                     file_path = diff_item.a_path
-                    change_type = "D"
                 elif diff_item.renamed:
                     file_path = f"{diff_item.a_path} -> {diff_item.b_path}"
-                    change_type = "R"
                 else:
                     file_path = diff_item.b_path or diff_item.a_path
-                    change_type = "M"
 
                 files_changed.append(file_path)
 

@@ -220,7 +220,7 @@ class CodeParser:
             for decorator in node.decorator_list:
                 try:
                     decorators.append(ast.unparse(decorator))
-                except:
+                except Exception:
                     pass
 
             return CodeSymbol(
@@ -267,7 +267,7 @@ class CodeParser:
             for decorator in node.decorator_list:
                 try:
                     decorators.append(ast.unparse(decorator))
-                except:
+                except Exception:
                     pass
 
             return CodeSymbol(
@@ -332,7 +332,7 @@ class CodeParser:
             for decorator in node.decorator_list:
                 try:
                     decorators.append(ast.unparse(decorator))
-                except:
+                except Exception:
                     pass
 
             return CodeSymbol(
