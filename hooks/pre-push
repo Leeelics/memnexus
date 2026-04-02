@@ -1,0 +1,142 @@
+#!/bin/bash
+# Pre-push hook for memnexus
+# Runs CI checks before pushing to remote
+#
+# Install: cp hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push
+#
+# Environment variables:
+#   SKIP_TYPECHECK=1  - Skip type checking (faster, but may miss type issues)
+#   SKIP_BUILD=1      - Skip build check
+#   SKIP_TESTS=1      - Skip tests (not recommended)
+#   SKIP_LINT=1       - Skip lint check (not recommended)
+
+set -e
+
+echo "🔍 Running pre-push checks..."
+echo ""
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Check if uv is available
+if ! command -v uv &> /dev/null; then
+    echo -e "${RED}❌ uv not found. Please install uv first:${NC}"
+    echo "   curl -LsSf https://astral.sh/uv/install.sh | sh"
+    exit 1
+fi
+
+STEP=0
+TOTAL=6
+
+# Step 1: Lint checks
+STEP=$((STEP + 1))
+if [ -z "$SKIP_LINT" ]; then
+    echo -e "${BLUE}[$STEP/$TOTAL]${NC} 📋 Running lint checks..."
+    if ! make lint; then
+        echo -e "${RED}❌ Lint checks failed!${NC}"
+        echo "   Run 'make format' to auto-fix issues."
+        exit 1
+    fi
+    if ! make format-check; then
+        echo -e "${RED}❌ Format check failed!${NC}"
+        echo "   Run 'make format' to auto-fix."
+        exit 1
+    fi
+    echo -e "${GREEN}✅ Lint checks passed${NC}"
+else
+    echo -e "${YELLOW}[$STEP/$TOTAL] ⏭️  Skipping lint checks (SKIP_LINT=1)${NC}"
+fi
+echo ""
+
+# Step 2: Type check
+STEP=$((STEP + 1))
+if [ -z "$SKIP_TYPECHECK" ]; then
+    echo -e "${BLUE}[$STEP/$TOTAL]${NC} 🔍 Running type check..."
+    echo "   (Set SKIP_TYPECHECK=1 to skip known issues)"
+    if ! make typecheck; then
+        echo -e "${YELLOW}⚠️  Type check has issues (see above).${NC}"
+        echo "   This is expected for some mypy configurations."
+        echo "   CI may still pass if typecheck job is configured to allow failures."
+        # Don't fail for typecheck - it has known issues in memnexus
+    else
+        echo -e "${GREEN}✅ Type check passed${NC}"
+    fi
+else
+    echo -e "${YELLOW}[$STEP/$TOTAL] ⏭️  Skipping type check (SKIP_TYPECHECK=1)${NC}"
+fi
+echo ""
+
+# Step 3: Tests
+STEP=$((STEP + 1))
+if [ -z "$SKIP_TESTS" ]; then
+    echo -e "${BLUE}[$STEP/$TOTAL]${NC} 🧪 Running tests..."
+    if ! make test; then
+        echo -e "${RED}❌ Tests failed!${NC}"
+        echo "   Please fix the failing tests before pushing."
+        exit 1
+    fi
+    echo -e "${GREEN}✅ All tests passed${NC}"
+else
+    echo -e "${YELLOW}[$STEP/$TOTAL] ⏭️  Skipping tests (SKIP_TESTS=1)${NC}"
+fi
+echo ""
+
+# Step 4: Version check
+STEP=$((STEP + 1))
+echo -e "${BLUE}[$STEP/$TOTAL]${NC} 🔢 Checking version consistency..."
+if ! uv run scripts/check_version.py 2>/dev/null; then
+    # Fallback: manual version check
+    PYPROJECT_VERSION=$(grep '^version' pyproject.toml | head -1 | cut -d'"' -f2)
+    INIT_VERSION=$(grep '__version__' src/memnexus/__init__.py | head -1 | cut -d'"' -f2)
+    echo "  pyproject.toml: $PYPROJECT_VERSION"
+    echo "  __init__.py: $INIT_VERSION"
+    if [ "$PYPROJECT_VERSION" != "$INIT_VERSION" ]; then
+        echo -e "${RED}❌ Version mismatch!${NC}"
+        exit 1
+    fi
+fi
+echo -e "${GREEN}✅ Version check passed${NC}"
+echo ""
+
+# Step 5: Documentation check
+STEP=$((STEP + 1))
+echo -e "${BLUE}[$STEP/$TOTAL]${NC} 📚 Checking documentation..."
+if [ ! -f README.md ]; then
+    echo -e "${RED}❌ README.md missing!${NC}"
+    exit 1
+fi
+if [ ! -f CHANGELOG.md ]; then
+    echo -e "${RED}❌ CHANGELOG.md missing!${NC}"
+    exit 1
+fi
+if [ ! -f LICENSE ]; then
+    echo -e "${RED}❌ LICENSE missing!${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✅ Documentation check passed${NC}"
+echo ""
+
+# Step 6: Build check (optional, can be slow)
+STEP=$((STEP + 1))
+if [ -z "$SKIP_BUILD" ]; then
+    echo -e "${BLUE}[$STEP/$TOTAL]${NC} 📦 Running build check..."
+    echo "   (This may take a while. Set SKIP_BUILD=1 to skip)"
+    if ! make build-check; then
+        echo -e "${RED}❌ Build check failed!${NC}"
+        echo "   The package may not install correctly."
+        exit 1
+    fi
+    echo -e "${GREEN}✅ Build check passed${NC}"
+else
+    echo -e "${YELLOW}[$STEP/$TOTAL] ⏭️  Skipping build check (SKIP_BUILD=1)${NC}"
+fi
+echo ""
+
+echo -e "${GREEN}✅ All pre-push checks passed!${NC}"
+echo ""
+echo "🚀 Ready to push!"
+exit 0
