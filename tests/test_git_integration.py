@@ -79,7 +79,8 @@ class TestGitMemoryExtractor:
         """Test extractor initialization with valid repo."""
         extractor = GitMemoryExtractor(str(temp_git_repo))
         assert extractor.is_valid()
-        assert extractor.repo_path == temp_git_repo
+        # Use resolve() to handle macOS /private/var path differences
+        assert extractor.repo_path.resolve() == temp_git_repo.resolve()
 
     def test_init_with_invalid_repo(self):
         """Test extractor initialization with invalid repo."""
