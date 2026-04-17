@@ -1,13 +1,13 @@
 """Benchmark runner - main entry point."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import yaml
 
-from benchmark.core.base import BenchmarkResult
-from benchmark.core.pipeline import BenchmarkPipeline
-from benchmark.core.reporter import BenchmarkReporter
+from .base import BenchmarkResult
+from .pipeline import BenchmarkPipeline
+from .reporter import BenchmarkReporter
 
 
 class BenchmarkRunner:
@@ -21,14 +21,14 @@ class BenchmarkRunner:
         >>> results = await runner.run_task("git_retrieval")
     """
 
-    def __init__(self, config_path: str | None = None):
+    def __init__(self, config_path: Optional[str] = None):
         self.config = self._load_config(config_path)
         self.pipeline = BenchmarkPipeline(self.config)
         self.reporter = BenchmarkReporter(self.config)
         self._tasks: dict[str, Any] = {}
         self._datasets: dict[str, Any] = {}
 
-    def _load_config(self, config_path: str | None) -> dict[str, Any]:
+    def _load_config(self, config_path: Optional[str]) -> dict:
         """Load configuration from file."""
         if config_path is None:
             # Try default location
@@ -55,13 +55,13 @@ class BenchmarkRunner:
         task_class, kwargs = self._tasks[name]
         return task_class(name, **kwargs)
 
-    async def run_task(self, name: str) -> BenchmarkResult:
+    async def run_task(self, name: str):
         """Run a specific task."""
         task = self._create_task(name)
         dataset = self._datasets.get(name)
         return await self.pipeline.run_task(task, dataset)
 
-    async def run_all(self) -> list[BenchmarkResult]:
+    async def run_all(self):
         """Run all registered tasks."""
         tasks = [self._create_task(name) for name in self._tasks]
         datasets = {name: self._datasets.get(name) for name in self._tasks}
@@ -69,9 +69,9 @@ class BenchmarkRunner:
 
     def generate_report(
         self,
-        results: list[BenchmarkResult],
+        results: list,
         output_format: str = "json",
-        output_path: str | None = None,
+        output_path: Optional[str] = None,
     ) -> str:
         """Generate report from results."""
         if output_format == "json":
@@ -83,6 +83,6 @@ class BenchmarkRunner:
         else:
             raise ValueError(f"Unknown format: {output_format}")
 
-    def get_available_tasks(self) -> list[str]:
+    def get_available_tasks(self) -> list:
         """Get list of available task names."""
         return list(self._tasks.keys())

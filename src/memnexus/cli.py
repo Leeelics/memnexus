@@ -1,16 +1,12 @@
 """CLI entry point for MemNexus Code Memory."""
 
 import asyncio
-import sys
 from pathlib import Path
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-
-# Add src to path for development
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from memnexus import __version__
 from memnexus.code_memory import CodeMemory

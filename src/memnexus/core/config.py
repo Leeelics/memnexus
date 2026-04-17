@@ -1,6 +1,7 @@
 """Configuration management for MemNexus."""
 
 import os
+from importlib.metadata import version as get_version
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -14,7 +15,7 @@ class Settings(BaseModel):
 
     # App
     APP_NAME: str = "MemNexus"
-    APP_VERSION: str = "0.3.0"
+    APP_VERSION: str = Field(default_factory=lambda: get_version("memnexus"))
     DEBUG: bool = Field(default=False)
     ENV: str = Field(default="development")
 

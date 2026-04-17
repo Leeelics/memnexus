@@ -1,0 +1,1775 @@
+{
+  "metadata": {
+    "source": "git_history",
+    "repo_path": "/Users/elics/workspace/ship/memnexus",
+    "generated_at": "2026-04-05T11:23:49.442266",
+    "num_samples": 49,
+    "num_qa_pairs": 98
+  },
+  "samples": [
+    {
+      "sample_id": "dadbcabb",
+      "context": "fix: resolve macOS /private/var path issue in test",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit dadbcabb?",
+          "gold_answers": [
+            "fix: resolve macOS /private/var path issue in test"
+          ],
+          "evidence": [
+            "dadbcabb"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "dadbcabb",
+            "author": "Elics",
+            "date": "2026-04-02 15:55:05 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'fix: resolve macOS /private/var path issue in test...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "dadbcabb"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "dadbcabb",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "184df78e",
+      "context": "feat: add pre-push hook for CI checks",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 184df78e?",
+          "gold_answers": [
+            "feat: add pre-push hook for CI checks"
+          ],
+          "evidence": [
+            "184df78e"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "184df78e",
+            "author": "Elics",
+            "date": "2026-04-02 15:49:58 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: add pre-push hook for CI checks...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "184df78e"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "184df78e",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "f15bfcef",
+      "context": "chore(gitignore): exclude benchmark results directory",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit f15bfcef?",
+          "gold_answers": [
+            "chore(gitignore): exclude benchmark results directory"
+          ],
+          "evidence": [
+            "f15bfcef"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "f15bfcef",
+            "author": "Elics",
+            "date": "2026-04-02 07:19:36 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore(gitignore): exclude benchmark results direct...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "f15bfcef"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "f15bfcef",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "7447c3d3",
+      "context": "feat(benchmark): add comprehensive benchmark framework for MemNexus",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 7447c3d3?",
+          "gold_answers": [
+            "feat(benchmark): add comprehensive benchmark framework for MemNexus"
+          ],
+          "evidence": [
+            "7447c3d3"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "7447c3d3",
+            "author": "Elics",
+            "date": "2026-04-02 07:19:28 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat(benchmark): add comprehensive benchmark frame...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "7447c3d3"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "7447c3d3",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "54fa9559",
+      "context": "ci: add pre-commit hooks and fix lint issues",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 54fa9559?",
+          "gold_answers": [
+            "ci: add pre-commit hooks and fix lint issues"
+          ],
+          "evidence": [
+            "54fa9559"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "54fa9559",
+            "author": "Elics",
+            "date": "2026-04-01 17:53:01 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'ci: add pre-commit hooks and fix lint issues...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "54fa9559"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "54fa9559",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "93c24de9",
+      "context": "fix: exclude virtual environments from build",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 93c24de9?",
+          "gold_answers": [
+            "fix: exclude virtual environments from build"
+          ],
+          "evidence": [
+            "93c24de9"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "93c24de9",
+            "author": "Elics",
+            "date": "2026-04-01 16:46:28 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'fix: exclude virtual environments from build...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "93c24de9"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "93c24de9",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "1ec50b9f",
+      "context": "style: fix code formatting and lint issues",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 1ec50b9f?",
+          "gold_answers": [
+            "style: fix code formatting and lint issues"
+          ],
+          "evidence": [
+            "1ec50b9f"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "1ec50b9f",
+            "author": "Elics",
+            "date": "2026-04-01 16:38:55 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'style: fix code formatting and lint issues...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "1ec50b9f"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "1ec50b9f",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "c7dc08cb",
+      "context": "feat: add Session Explorer for cross-session context discovery",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit c7dc08cb?",
+          "gold_answers": [
+            "feat: add Session Explorer for cross-session context discovery"
+          ],
+          "evidence": [
+            "c7dc08cb"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "c7dc08cb",
+            "author": "Elics",
+            "date": "2026-04-01 16:24:18 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: add Session Explorer for cross-session conte...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "c7dc08cb"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "c7dc08cb",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "861b3908",
+      "context": "chore: bump version to 0.4.0 and update changelog",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 861b3908?",
+          "gold_answers": [
+            "chore: bump version to 0.4.0 and update changelog"
+          ],
+          "evidence": [
+            "861b3908"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "861b3908",
+            "author": "Elics",
+            "date": "2026-04-01 15:55:40 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: bump version to 0.4.0 and update changelog...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "861b3908"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "861b3908",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "0ca96a3c",
+      "context": "fix: replace deprecated datetime.utcnow() with datetime.now(timezone.utc)",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 0ca96a3c?",
+          "gold_answers": [
+            "fix: replace deprecated datetime.utcnow() with datetime.now(timezone.utc)"
+          ],
+          "evidence": [
+            "0ca96a3c"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "0ca96a3c",
+            "author": "Elics",
+            "date": "2026-04-01 15:54:31 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'fix: replace deprecated datetime.utcnow() with dat...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "0ca96a3c"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "0ca96a3c",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "96005d16",
+      "context": "feat: add JavaScript/TypeScript parsing support",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 96005d16?",
+          "gold_answers": [
+            "feat: add JavaScript/TypeScript parsing support"
+          ],
+          "evidence": [
+            "96005d16"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "96005d16",
+            "author": "Elics",
+            "date": "2026-04-01 15:52:13 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: add JavaScript/TypeScript parsing support...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "96005d16"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "96005d16",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "9f0467d1",
+      "context": "feat: add git blame and code evolution tracking",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 9f0467d1?",
+          "gold_answers": [
+            "feat: add git blame and code evolution tracking"
+          ],
+          "evidence": [
+            "9f0467d1"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "9f0467d1",
+            "author": "Elics",
+            "date": "2026-04-01 15:49:57 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: add git blame and code evolution tracking...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "9f0467d1"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "9f0467d1",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "26a311b2",
+      "context": "feat: add file watcher for real-time indexing",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 26a311b2?",
+          "gold_answers": [
+            "feat: add file watcher for real-time indexing"
+          ],
+          "evidence": [
+            "26a311b2"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "26a311b2",
+            "author": "Elics",
+            "date": "2026-04-01 15:47:26 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: add file watcher for real-time indexing...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "26a311b2"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "26a311b2",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "4a806f9c",
+      "context": "chore: add experimental warnings to advanced memory modules",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 4a806f9c?",
+          "gold_answers": [
+            "chore: add experimental warnings to advanced memory modules"
+          ],
+          "evidence": [
+            "4a806f9c"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "4a806f9c",
+            "author": "Elics",
+            "date": "2026-04-01 15:31:24 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: add experimental warnings to advanced memor...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "4a806f9c"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "4a806f9c",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "6ce4c857",
+      "context": "fix: resolve test errors and lint issues",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 6ce4c857?",
+          "gold_answers": [
+            "fix: resolve test errors and lint issues"
+          ],
+          "evidence": [
+            "6ce4c857"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "6ce4c857",
+            "author": "Elics",
+            "date": "2026-04-01 15:09:45 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'fix: resolve test errors and lint issues...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "6ce4c857"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "6ce4c857",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "a20ea5ed",
+      "context": "ci: improve GitHub Actions workflows",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit a20ea5ed?",
+          "gold_answers": [
+            "ci: improve GitHub Actions workflows"
+          ],
+          "evidence": [
+            "a20ea5ed"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "a20ea5ed",
+            "author": "Elics",
+            "date": "2026-03-30 16:51:42 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'ci: improve GitHub Actions workflows...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "a20ea5ed"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "a20ea5ed",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "7abe9d63",
+      "context": "chore: add Makefile for unified build commands",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 7abe9d63?",
+          "gold_answers": [
+            "chore: add Makefile for unified build commands"
+          ],
+          "evidence": [
+            "7abe9d63"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "7abe9d63",
+            "author": "Elics",
+            "date": "2026-03-30 16:51:28 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: add Makefile for unified build commands...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "7abe9d63"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "7abe9d63",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "a270e8fd",
+      "context": "ci: add PR title checker",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit a270e8fd?",
+          "gold_answers": [
+            "ci: add PR title checker"
+          ],
+          "evidence": [
+            "a270e8fd"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "a270e8fd",
+            "author": "Elics",
+            "date": "2026-03-30 16:51:19 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'ci: add PR title checker...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "a270e8fd"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "a270e8fd",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "ae6fde8d",
+      "context": "ci: add spell checking with typos",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit ae6fde8d?",
+          "gold_answers": [
+            "ci: add spell checking with typos"
+          ],
+          "evidence": [
+            "ae6fde8d"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "ae6fde8d",
+            "author": "Elics",
+            "date": "2026-03-30 16:51:10 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'ci: add spell checking with typos...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "ae6fde8d"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "ae6fde8d",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "886327fa",
+      "context": "feat: add version check script",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 886327fa?",
+          "gold_answers": [
+            "feat: add version check script"
+          ],
+          "evidence": [
+            "886327fa"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "886327fa",
+            "author": "Elics",
+            "date": "2026-03-30 16:50:56 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: add version check script...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "886327fa"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "886327fa",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "a6e3225b",
+      "context": "style: format code with ruff",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit a6e3225b?",
+          "gold_answers": [
+            "style: format code with ruff"
+          ],
+          "evidence": [
+            "a6e3225b"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "a6e3225b",
+            "author": "Elics",
+            "date": "2026-03-30 16:50:43 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'style: format code with ruff...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "a6e3225b"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "a6e3225b",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "64807e2c",
+      "context": "ci: add GitHub Actions workflows for automated CI/CD",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 64807e2c?",
+          "gold_answers": [
+            "ci: add GitHub Actions workflows for automated CI/CD"
+          ],
+          "evidence": [
+            "64807e2c"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "64807e2c",
+            "author": "Elics",
+            "date": "2026-03-30 15:37:50 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'ci: add GitHub Actions workflows for automated CI/...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "64807e2c"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "64807e2c",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "f00db549",
+      "context": "fix: prevent infinite recursion in get_file_history",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit f00db549?",
+          "gold_answers": [
+            "fix: prevent infinite recursion in get_file_history"
+          ],
+          "evidence": [
+            "f00db549"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "f00db549",
+            "author": "Elics",
+            "date": "2026-03-30 11:06:29 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'fix: prevent infinite recursion in get_file_histor...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "f00db549"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "f00db549",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "29fea948",
+      "context": "test: add integration tests for global memory",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 29fea948?",
+          "gold_answers": [
+            "test: add integration tests for global memory"
+          ],
+          "evidence": [
+            "29fea948"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "29fea948",
+            "author": "Elics",
+            "date": "2026-03-30 10:48:13 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'test: add integration tests for global memory...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "29fea948"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "29fea948",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "709b81e9",
+      "context": "chore: version 0.3.0 with global memory",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 709b81e9?",
+          "gold_answers": [
+            "chore: version 0.3.0 with global memory"
+          ],
+          "evidence": [
+            "709b81e9"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "709b81e9",
+            "author": "Elics",
+            "date": "2026-03-30 10:32:21 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: version 0.3.0 with global memory...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "709b81e9"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "709b81e9",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "98396c29",
+      "context": "feat: global memory for cross-project knowledge",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 98396c29?",
+          "gold_answers": [
+            "feat: global memory for cross-project knowledge"
+          ],
+          "evidence": [
+            "98396c29"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "98396c29",
+            "author": "Elics",
+            "date": "2026-03-27 18:19:46 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: global memory for cross-project knowledge...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "98396c29"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "98396c29",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "d116b047",
+      "context": "refactor: cleanup dependencies, move redis to optional",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit d116b047?",
+          "gold_answers": [
+            "refactor: cleanup dependencies, move redis to optional"
+          ],
+          "evidence": [
+            "d116b047"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "d116b047",
+            "author": "Elics",
+            "date": "2026-03-27 17:54:34 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'refactor: cleanup dependencies, move redis to opti...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "d116b047"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "d116b047",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "8e7503d7",
+      "context": "refactor: simplify embedding options to 2 choices",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 8e7503d7?",
+          "gold_answers": [
+            "refactor: simplify embedding options to 2 choices"
+          ],
+          "evidence": [
+            "8e7503d7"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "8e7503d7",
+            "author": "Elics",
+            "date": "2026-03-27 17:45:01 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'refactor: simplify embedding options to 2 choices...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "8e7503d7"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "8e7503d7",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "d2f8b2a8",
+      "context": "feat: lightweight TF-IDF embedding, zero dependencies",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit d2f8b2a8?",
+          "gold_answers": [
+            "feat: lightweight TF-IDF embedding, zero dependencies"
+          ],
+          "evidence": [
+            "d2f8b2a8"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "d2f8b2a8",
+            "author": "Elics",
+            "date": "2026-03-27 17:36:19 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: lightweight TF-IDF embedding, zero dependenc...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "d2f8b2a8"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "d2f8b2a8",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "8ba7a664",
+      "context": "feat: incremental indexing for Git and code",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 8ba7a664?",
+          "gold_answers": [
+            "feat: incremental indexing for Git and code"
+          ],
+          "evidence": [
+            "8ba7a664"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "8ba7a664",
+            "author": "Elics",
+            "date": "2026-03-27 17:09:07 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: incremental indexing for Git and code...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "8ba7a664"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "8ba7a664",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "9a036232",
+      "context": "fix: add missing main() function in cli.py for entry point",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 9a036232?",
+          "gold_answers": [
+            "fix: add missing main() function in cli.py for entry point"
+          ],
+          "evidence": [
+            "9a036232"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "9a036232",
+            "author": "Elics",
+            "date": "2026-03-27 14:44:24 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'fix: add missing main() function in cli.py for ent...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "9a036232"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "9a036232",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "1224b94a",
+      "context": "chore: bump version to 0.2.1",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 1224b94a?",
+          "gold_answers": [
+            "chore: bump version to 0.2.1"
+          ],
+          "evidence": [
+            "1224b94a"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "1224b94a",
+            "author": "Elics",
+            "date": "2026-03-26 15:55:33 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: bump version to 0.2.1...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "1224b94a"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "1224b94a",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "ab0d3492",
+      "context": "feat: optimize dependencies and add install-plugin command",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit ab0d3492?",
+          "gold_answers": [
+            "feat: optimize dependencies and add install-plugin command"
+          ],
+          "evidence": [
+            "ab0d3492"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "ab0d3492",
+            "author": "Elics",
+            "date": "2026-03-26 15:55:23 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: optimize dependencies and add install-plugin...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "ab0d3492"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "ab0d3492",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "7614b488",
+      "context": "chore: bump version to 0.2.0",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 7614b488?",
+          "gold_answers": [
+            "chore: bump version to 0.2.0"
+          ],
+          "evidence": [
+            "7614b488"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "7614b488",
+            "author": "Elics",
+            "date": "2026-03-26 14:31:22 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: bump version to 0.2.0...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "7614b488"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "7614b488",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "4be9b0f5",
+      "context": "chore: adopt uv-based release workflow from kimi-tachi",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 4be9b0f5?",
+          "gold_answers": [
+            "chore: adopt uv-based release workflow from kimi-tachi"
+          ],
+          "evidence": [
+            "4be9b0f5"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "4be9b0f5",
+            "author": "Elics",
+            "date": "2026-03-25 17:55:01 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: adopt uv-based release workflow from kimi-t...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "4be9b0f5"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "4be9b0f5",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "78778741",
+      "context": "chore: bump version to 0.2.0 for release",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 78778741?",
+          "gold_answers": [
+            "chore: bump version to 0.2.0 for release"
+          ],
+          "evidence": [
+            "78778741"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "78778741",
+            "author": "Elics",
+            "date": "2026-03-25 17:51:51 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: bump version to 0.2.0 for release...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "78778741"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "78778741",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "d6d58abc",
+      "context": "docs: simplify INSTALL.md and update SECURITY.md",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit d6d58abc?",
+          "gold_answers": [
+            "docs: simplify INSTALL.md and update SECURITY.md"
+          ],
+          "evidence": [
+            "d6d58abc"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "d6d58abc",
+            "author": "Elics",
+            "date": "2026-03-25 17:42:36 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'docs: simplify INSTALL.md and update SECURITY.md...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "d6d58abc"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "d6d58abc",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "879817b5",
+      "context": "docs: cleanup and update documentation for v0.2.0",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 879817b5?",
+          "gold_answers": [
+            "docs: cleanup and update documentation for v0.2.0"
+          ],
+          "evidence": [
+            "879817b5"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "879817b5",
+            "author": "Elics",
+            "date": "2026-03-25 17:24:59 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'docs: cleanup and update documentation for v0.2.0...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "879817b5"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "879817b5",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "4ceeba17",
+      "context": "chore(release): prepare for v0.2.0 release",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 4ceeba17?",
+          "gold_answers": [
+            "chore(release): prepare for v0.2.0 release"
+          ],
+          "evidence": [
+            "4ceeba17"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "4ceeba17",
+            "author": "Elics",
+            "date": "2026-03-25 16:40:11 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore(release): prepare for v0.2.0 release...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "4ceeba17"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "4ceeba17",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "54e14de7",
+      "context": "feat(kimi-plugin): add Kimi CLI 1.25.0 plugin support",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 54e14de7?",
+          "gold_answers": [
+            "feat(kimi-plugin): add Kimi CLI 1.25.0 plugin support"
+          ],
+          "evidence": [
+            "54e14de7"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "54e14de7",
+            "author": "Elics",
+            "date": "2026-03-25 16:32:26 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat(kimi-plugin): add Kimi CLI 1.25.0 plugin supp...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "54e14de7"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "54e14de7",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "4cbf5ad6",
+      "context": "feat(week3): implement code parsing and indexing MVP",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 4cbf5ad6?",
+          "gold_answers": [
+            "feat(week3): implement code parsing and indexing MVP"
+          ],
+          "evidence": [
+            "4cbf5ad6"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "4cbf5ad6",
+            "author": "Elics",
+            "date": "2026-03-25 16:22:14 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat(week3): implement code parsing and indexing M...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "4cbf5ad6"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "4cbf5ad6",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "5e74d2fa",
+      "context": "feat(week2): implement Git integration MVP",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 5e74d2fa?",
+          "gold_answers": [
+            "feat(week2): implement Git integration MVP"
+          ],
+          "evidence": [
+            "5e74d2fa"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "5e74d2fa",
+            "author": "Elics",
+            "date": "2026-03-25 15:53:09 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat(week2): implement Git integration MVP...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "5e74d2fa"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "5e74d2fa",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "66baead2",
+      "context": "feat: add CodeMemory main class, simplify server and cli",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 66baead2?",
+          "gold_answers": [
+            "feat: add CodeMemory main class, simplify server and cli"
+          ],
+          "evidence": [
+            "66baead2"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "66baead2",
+            "author": "Elics",
+            "date": "2026-03-25 15:25:49 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat: add CodeMemory main class, simplify server a...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "66baead2"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "66baead2",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "40ec4d9a",
+      "context": "chore: add week1 verification script",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 40ec4d9a?",
+          "gold_answers": [
+            "chore: add week1 verification script"
+          ],
+          "evidence": [
+            "40ec4d9a"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "40ec4d9a",
+            "author": "Elics",
+            "date": "2026-03-25 15:05:18 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: add week1 verification script...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "40ec4d9a"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "40ec4d9a",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "03f2d697",
+      "context": "docs: update README with new positioning",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 03f2d697?",
+          "gold_answers": [
+            "docs: update README with new positioning"
+          ],
+          "evidence": [
+            "03f2d697"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "03f2d697",
+            "author": "Elics",
+            "date": "2026-03-25 15:04:11 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'docs: update README with new positioning...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "03f2d697"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "03f2d697",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "a53e7b31",
+      "context": "feat(week1): add init and status commands, update CLI help",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit a53e7b31?",
+          "gold_answers": [
+            "feat(week1): add init and status commands, update CLI help"
+          ],
+          "evidence": [
+            "a53e7b31"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "a53e7b31",
+            "author": "Elics",
+            "date": "2026-03-25 15:03:27 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'feat(week1): add init and status commands, update ...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "a53e7b31"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "a53e7b31",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "115b9856",
+      "context": "chore(week1): mark experimental features and add git/code placeholders",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit 115b9856?",
+          "gold_answers": [
+            "chore(week1): mark experimental features and add git/code placeholders"
+          ],
+          "evidence": [
+            "115b9856"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "115b9856",
+            "author": "Elics",
+            "date": "2026-03-25 15:00:44 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore(week1): mark experimental features and add g...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "115b9856"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "115b9856",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "ed07df3e",
+      "context": "fix(gitignore): remove .sisyphus planning files from git tracking",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit ed07df3e?",
+          "gold_answers": [
+            "fix(gitignore): remove .sisyphus planning files from git tracking"
+          ],
+          "evidence": [
+            "ed07df3e"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "ed07df3e",
+            "author": "Elics",
+            "date": "2026-03-10 07:32:18 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'fix(gitignore): remove .sisyphus planning files fr...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "ed07df3e"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "ed07df3e",
+            "type": "author_identification"
+          }
+        }
+      ]
+    },
+    {
+      "sample_id": "bbd3301e",
+      "context": "chore: add planning files and memory v2 demo",
+      "qa_pairs": [
+        {
+          "question": "What was changed in commit bbd3301e?",
+          "gold_answers": [
+            "chore: add planning files and memory v2 demo"
+          ],
+          "evidence": [
+            "bbd3301e"
+          ],
+          "category": "change_history",
+          "metadata": {
+            "commit_hash": "bbd3301e",
+            "author": "Elics",
+            "date": "2026-03-10 07:24:39 +0800",
+            "type": "change_summary"
+          }
+        },
+        {
+          "question": "Who made the change: 'chore: add planning files and memory v2 demo...'?",
+          "gold_answers": [
+            "Elics"
+          ],
+          "evidence": [
+            "bbd3301e"
+          ],
+          "category": "who_changed",
+          "metadata": {
+            "commit_hash": "bbd3301e",
+            "type": "author_identification"
+          }
+        }
+      ]
+    }
+  ]
+}

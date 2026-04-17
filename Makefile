@@ -85,9 +85,11 @@ build: ## Build package distributions (wheel and sdist).
 	@uv build --no-sources --out-dir dist
 
 .PHONY: build-check
-build-check: build ## Build and check distributions with twine.
+build-check: build ## Build and verify package can be installed.
 	@echo "==> Checking distributions"
 	@uvx twine check dist/*
+	@echo "==> Testing package installation"
+	@uv run python scripts/test_build.py
 
 .PHONY: clean
 clean: ## Clean build artifacts.

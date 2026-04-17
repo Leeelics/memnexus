@@ -3,9 +3,9 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
-from benchmark.core.base import BenchmarkResult
+from .base import BenchmarkResult
 
 
 class BenchmarkReporter:
@@ -21,10 +21,10 @@ class BenchmarkReporter:
         >>> reporter.to_html(results, "report.html")
     """
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: Optional[dict] = None):
         self.config = config or {}
 
-    def to_json(self, results: list[BenchmarkResult], output_path: str | None = None) -> str:
+    def to_json(self, results: list, output_path: Optional[str] = None) -> str:
         """Export results to JSON.
 
         Args:
@@ -49,7 +49,7 @@ class BenchmarkReporter:
 
         return json_str
 
-    def to_markdown(self, results: list[BenchmarkResult], output_path: str | None = None) -> str:
+    def to_markdown(self, results: list, output_path: Optional[str] = None) -> str:
         """Export results to Markdown.
 
         Args:
@@ -98,7 +98,7 @@ class BenchmarkReporter:
 
         return md_str
 
-    def to_html(self, results: list[BenchmarkResult], output_path: str | None = None) -> str:
+    def to_html(self, results: list, output_path: Optional[str] = None) -> str:
         """Export results to HTML.
 
         Args:
@@ -227,7 +227,7 @@ class BenchmarkReporter:
 
         return html
 
-    def _compute_summary(self, results: list[BenchmarkResult]) -> dict[str, Any]:
+    def _compute_summary(self, results: list) -> dict:
         """Compute summary statistics."""
         successful = sum(1 for r in results if "error" not in r.metrics)
         failed = len(results) - successful

@@ -103,6 +103,14 @@ jobs:
         with:
           version: "latest"
 
+      - name: Validate PyPI token
+        run: |
+          if [ -z "${{ secrets.PYPI_API_TOKEN }}" ]; then
+            echo "❌ PYPI_API_TOKEN secret is not set or not available in this environment"
+            exit 1
+          fi
+          echo "✅ PyPI token is configured"
+
       - name: Publish to PyPI
         run: uv publish
         env:

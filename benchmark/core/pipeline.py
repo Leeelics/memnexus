@@ -1,9 +1,24 @@
 """Benchmark execution pipeline."""
 
 import time
-from typing import Any
+from typing import Any, Protocol, Optional
 
-from benchmark.core.base import BenchmarkResult, BenchmarkTask, Dataset
+from .base import BenchmarkResult
+
+
+class BenchmarkTask(Protocol):
+    """Protocol for benchmark tasks."""
+
+    name: str
+
+    def ensure_setup(self) -> None: ...
+    async def run(self, dataset: Optional[Any]) -> BenchmarkResult: ...
+
+
+class Dataset(Protocol):
+    """Protocol for datasets."""
+
+    pass
 
 
 class BenchmarkPipeline:
@@ -21,13 +36,11 @@ class BenchmarkPipeline:
         >>> result = await pipeline.run_task(task, dataset)
     """
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: Optional[dict] = None):
         self.config = config or {}
         self.results: list[BenchmarkResult] = []
 
-    async def run_task(
-        self, task: BenchmarkTask, dataset: Dataset | None = None
-    ) -> BenchmarkResult:
+    async def run_task(self, task: Any, dataset: Optional[Any] = None) -> BenchmarkResult:
         """Run a single benchmark task.
 
         Args:
@@ -64,9 +77,7 @@ class BenchmarkPipeline:
                 duration_seconds=time.perf_counter() - start_time,
             )
 
-    async def run_tasks(
-        self, tasks: list[BenchmarkTask], datasets: dict[str, Dataset] | None = None
-    ) -> list[BenchmarkResult]:
+    async def run_tasks(self, tasks: list, datasets: Optional[dict] = None) -> list:
         """Run multiple tasks.
 
         Args:
@@ -87,7 +98,7 @@ class BenchmarkPipeline:
         self.results.extend(results)
         return results
 
-    def get_summary(self) -> dict[str, Any]:
+    def get_summary(self) -> dict:
         """Get summary of all results."""
         return {
             "total_tasks": len(self.results),
